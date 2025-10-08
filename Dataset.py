@@ -30,7 +30,9 @@ mc_path = "/eos/cms/store/group/phys_higgs/cmshww/amassiro/HWWNano/Summer20UL18_
 
 dataset = { 
 "data" : list_files_in_folder("/eos/cms/store/group/phys_higgs/cmshww/amassiro/HWWNano/Run2018_UL2018_nAODv9_Full2018v9/DATAl1loose2018v9__DATACombJJLNu2018/"),
-"DY" : list_files_in_folder(mc_path, "DYJetsToLL_M-50"),
+#"DY" : list_files_in_folder(mc_path, "DYJetsToLL_M-50,"),
+"DY" : list_files_in_folder(mc_path, "DYJetsToLL_M-50") + list_files_in_folder(mc_path, "DYJetsToLL_M-50_HT-70to100") +list_files_in_folder(mc_path, "DYJetsToLL_M-50_HT-100to200") + list_files_in_folder(mc_path, "DYJetsToLL_M-50_HT-200to400") + list_files_in_folder(mc_path, "DYJetsToLL_M-50_HT-400to600") + list_files_in_folder(mc_path, "DYJetsToLL_M-50_HT-600to800") + list_files_in_folder(mc_path, "DYJetsToLL_M-50_HT-800to1200") + list_files_in_folder(mc_path, "DYJetsToLL_M-50_HT-1200to2500") + list_files_in_folder(mc_path, "DYJetsToLL_M-50_HT-2500toInf"),
+"DY_else" : list_files_in_folder(mc_path, "DYJetsToLL_M-10to50-LO"),
 "Top" : list_files_in_folder(mc_path, "TTToSemiLeptonic") + list_files_in_folder(mc_path, 'TTTo2L2Nu') + list_files_in_folder(mc_path,'TTWJetsToLNu') + list_files_in_folder(mc_path,'TTWjets') + list_files_in_folder(mc_path,'ST_s-channel') + list_files_in_folder(mc_path,'ST_t-channel_antitop') + list_files_in_folder(mc_path,'ST_t-channel_top') + list_files_in_folder(mc_path, 'ST_tW_antitop') + list_files_in_folder(mc_path,'ST_tW_top'),
 "WW" : list_files_in_folder(mc_path,'WmToLNu_WmTo2J_QCD') + list_files_in_folder(mc_path,'WpToLNu_WpTo2J_QCD'),
 "ggH_bonly_on": list_files_in_folder(mc_path,'GluGluToWWToQQ_Cont_private'),
@@ -48,3 +50,5 @@ dataset = {
 "ggH_sand_off" : list_files_in_folder(mc_path,'GluGluToWWToQQ_SBI_private'),
 "ggH_sand_on" : list_files_in_folder(mc_path,'GluGluToWWToQQ_SBI_private'),
 }
+
+
