@@ -48,7 +48,7 @@ dataset = {
     "weight": "Generator_weight"
 },
 "Top": {
-    "files": list_files_in_folder(mc_path, "TTTo2L2Nu") + list_files_in_folder(mc_path, "TTToSemiLeptonic") + list_files_in_folder(mc_path, "ST_s-channel_4f_leptonDecays") + list_files_in_folder(mc_path, "ST_t-channel_antitop_4f_InclusiveDecays") + list_files_in_folder(mc_path, "ST_t-channel_top_4f_InclusiveDecays") + list_files_in_folder(mc_path, "ST_tW_antitop_5f_inclusiveDecays") + list_files_in_folder(mc_path, "ST_tW_top_5f_inclusiveDecays"),
+    "files": list_files_in_folder(mc_path, "TTToSemiLeptonic") + list_files_in_folder(mc_path, 'TTTo2L2Nu') + list_files_in_folder(mc_path,'TTWJetsToLNu') + list_files_in_folder(mc_path,'TTWjets') + list_files_in_folder(mc_path,'ST_s-channel') + list_files_in_folder(mc_path,'ST_t-channel_antitop') + list_files_in_folder(mc_path,'ST_t-channel_top') + list_files_in_folder(mc_path, 'ST_tW_antitop') + list_files_in_folder(mc_path,'ST_tW_top'),
     "isMC": True,
     "isSignal": False,
     "isOffshell": False,
