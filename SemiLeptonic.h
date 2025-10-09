@@ -17,6 +17,8 @@
 using namespace ROOT;
 using namespace ROOT::VecOps;
 
+std::vector<std::array<float,7>> _values = {};
+
 bool isAnalysisLepton(float Leading_Lepton_pdgId, float Leading_Lepton_pt, float Leading_Lepton_eta, float Leading_Lepton_phi){
   bool isAnaLepton = false;
   if(abs(Leading_Lepton_pdgId) == 11 && Leading_Lepton_pt > 35) isAnaLepton = true;
@@ -66,5 +68,53 @@ float getLeptonIdSF(const float& Leading_Lepton_pdgId, const bool& Leading_Lepto
     if (abs(Leading_Lepton_pdgId) == 11) weight =  Lepton_tightElectron_mvaFall17V2Iso_WP90_TotSF[0];
     else if (abs(Leading_Lepton_pdgId) == 13) weight = Lepton_tightMuon_cut_Tight_HWWW_TotSF[0];
   }
+  return weight;
+}
+
+void initializeEleTriggerSF(){
+  std::ifstream inputFile("Ele32_pt_eta_efficiency_withSys_Run2018.txt");
+  std::string line;
+  if (inputFile.is_open()){
+
+    while(getline(inputFile, line)){
+      std::stringstream ss(line);
+      std::array<float,7> line_values{};
+      int i = 0;
+      float value;
+      while (ss >> value)
+      {
+	line_values[i] = value;
+	++i;
+      }
+      _values.push_back(line_values);    
+    }
+  }
+}
+
+double getEleTriggerSF(float Lepton_pdgId, float Lepton_pt, float Lepton_eta){
+  double weight = 1;
+  if (abs(Lepton_pdgId) != 11) return weight;
+  
+  //handle overflow
+  if (Lepton_eta < -2.5) Lepton_eta = -2.499;
+  if (Lepton_eta > 2.5) Lepton_eta = 2.499;
+  if (Lepton_pt > 100) Lepton_pt = 99.99;
+
+  for (uint j = 0; j< _values.size(); j++){
+    if (Lepton_eta >= _values[j][0] && Lepton_eta <= _values[j][1] && Lepton_pt >= _values[j][2] && Lepton_pt <= _values[j][3]){
+      weight = _values[j][4];
+      //output[1] = _values[j][4] + _values[j][5];
+      //output[2] = _values[j][4] - _values[j][6] ;
+      break;
+    }
+  }
+
+  return weight;
+}
+
+double getTriggerSF(float Lepton_pdgId, float Ele_Trigger_SF, float Mu_Trigger_SF){
+  double weight  = 1;
+  if (abs(Lepton_pdgId) == 11) weight = Ele_Trigger_SF;
+  else if (abs(Lepton_pdgId) == 13) weight = Mu_Trigger_SF;
   return weight;
 }

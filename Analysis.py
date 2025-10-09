@@ -56,6 +56,13 @@ def makeRDF(dataset_name):
         df = df.Filter("Leading_Lepton_promptgenmatched", "Gen Matching of the leading Lepton")    
         df = df.Define("Lepton_ID_SF","getLeptonIdSF(Leading_Lepton_pdgId,Leading_Lepton_isTight,Lepton_tightElectron_mvaFall17V2Iso_WP90_TotSF,Lepton_tightMuon_cut_Tight_HWWW_TotSF)")
         df = df.Redefine("weight","weight*Lepton_ID_SF")
+        
+        if hasattr(ROOT, "initializeEleTriggerSF"):
+            ROOT.initializeEleTriggerSF()
+        
+        df = df.Define("EleTriggerSF","getEleTriggerSF(Leading_Lepton_pdgId,Leading_Lepton_pt,Leading_Lepton_eta)")
+        df = df.Define("LepTriggerSF","getTriggerSF(Leading_Lepton_pdgId,EleTriggerSF,TriggerEffWeight_1l)")
+        df = df.Redefine("weight", "weight*LepTriggerSF")
        
 
     df = df.Define("isAnalysisLepton","isAnalysisLepton(Leading_Lepton_pdgId,Leading_Lepton_pt,Leading_Lepton_eta,Leading_Lepton_phi)")
