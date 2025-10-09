@@ -29,3 +29,41 @@ bool isVetoLepton(float nLepton, const RVec<Float_t>& Lepton_pt, const RVec<Int_
   }
   return isVetoLepton;
 }
+
+float deltaPhi(float phi1, float phi2)
+{                                                        
+  float result = phi1 - phi2;
+  while (result > float(M_PI)) result -= float(2*M_PI);
+  while (result <= -float(M_PI)) result += float(2*M_PI);
+  return result;
+}
+
+float deltaR2(float eta1, float phi1, float eta2, float phi2)
+{
+  float deta = std::abs(eta1-eta2);
+  float dphi = deltaPhi(phi1,phi2);
+  return deta*deta + dphi*dphi;
+}
+
+float deltaR(float eta1, float phi1, float eta2, float phi2)
+{
+  return std::sqrt(deltaR2(eta1,phi1,eta2,phi2));
+}
+
+
+RVec<bool> isGoodFatjet(const RVec<Float_t>& FatJet_eta, const RVec<Float_t>& FatJet_phi,
+                          const RVec<Float_t>& Lepton_eta, const RVec<Float_t>& Lepton_phi)
+{
+  RVec<bool> isGoodFatJet(FatJet_eta.size(), false);
+  for(unsigned int iJet = 0; iJet < FatJet_eta.size(); iJet++){
+    float dr = 999.;
+
+    for (unsigned int iLep = 0; iLep < Lepton_eta.size(); iLep++){
+      float tmp_dr  = deltaR(FatJet_eta.at(iJet), FatJet_phi.at(iJet),
+	  Lepton_eta.at(iLep), Lepton_phi.at(iLep));
+      if (tmp_dr < dr) dr = tmp_dr;
+    }
+    if (dr > 0.8) isGoodFatJet[iJet] = true;        
+  }
+  return isGoodFatJet;
+}

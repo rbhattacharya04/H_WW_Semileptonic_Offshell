@@ -39,6 +39,24 @@ def makeRDF(files, isMC):
     df = df.Filter("!isVetoLepton", "Veto Lepton Cut")
    
     results["Cutflow4"] = df.Histo1D(("h_cutflow_4","Cutflow 4",1,-0.5,0.5),"cutflow_stage","weight")
+    
+    # Jet Selection
+    df = df.Filter("nFatJet>=1","At Least 1 Fat Jet")
+    df = df.Define("isGoodFatJet","isGoodFatjet(FatJet_eta,FatJet_phi,Lepton_eta,Lepton_phi)")
+    df = df.Define("GoodFatJet_pt","FatJet_pt[isGoodFatJet]")
+    df = df.Define("GoodFatJet_eta","FatJet_eta[isGoodFatJet]")
+    df = df.Define("GoodFatJet_phi","FatJet_phi[isGoodFatJet]")
+    df = df.Define("GoodFatJet_jetId","FatJet_jetId[isGoodFatJet]")
+    df = df.Define("nGoodFatJet","GoodFatJet_pt.size()")
+    df = df.Filter("nGoodFatJet>=1","At Least 1 Good Fat Jet")
+    df = df.Define("AnaFatJet_pt","GoodFatJet_pt[0]")
+    df = df.Define("AnaFatJet_eta","GoodFatJet_eta[0]")
+    df = df.Define("AnaFatJet_phi", "GoodFatJet_phi[0]")
+    df = df.Define("AnaFatJet_jetId","GoodFatJet_jetId[0]")
+    df = df.Filter("AnaFatJet_jetId > 0", "Jet Id cut")
+    #df = df.Filter("AnaFatJet_jetId == 2", "Tight Jet Id cut")
+    df = df.Filter("AnaFatJet_pt>200","Jet pT cut")
+    df = df.Filter("abs(AnaFatJet_eta)<2.4","Jet Eta cut")
       
     report = df.Report()
     report.Print()
