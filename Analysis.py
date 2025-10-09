@@ -11,8 +11,8 @@ def makeRDF(dataset_name):
     # Get files and isMC from dataset
     files = dataset[dataset_name]["files"]
     isMC = dataset[dataset_name]["isMC"]
-    isSignal = dataset[dataset_name].get("isSignal", False)
-    isOffshell = dataset[dataset_name].get("isOffshell", False)
+    isSignal = dataset[dataset_name]["isSignal"]
+    isOffshell = dataset[dataset_name]["isOffshell"]
     df = ROOT.RDataFrame("Events", files)
     #df = df.Range(1000)
     ROOT.RDF.Experimental.AddProgressBar(df)
@@ -35,7 +35,7 @@ def makeRDF(dataset_name):
             else:
                 df = df.Redefine("weight", "weight * ((mWW < 160) ? 1.0f : 0.0f)")
         else:
-            print("✅ Background sample - no mWW cuts applied")       
+            print(" Background sample - no mWW cuts applied")       
     else:
         df = df.Define("weight", "1") #for data *METFilter_DATA ?
     df = df.Define("cutflow_stage","0")
