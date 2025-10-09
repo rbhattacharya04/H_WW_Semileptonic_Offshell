@@ -30,114 +30,133 @@ dataset = {
     "files": list_files_in_folder("/eos/cms/store/group/phys_higgs/cmshww/amassiro/HWWNano/Run2018_UL2018_nAODv9_Full2018v9/DATAl1loose2018v9__DATACombJJLNu2018/"),
     "isMC": False,
     "isSignal": False,
-    "isOffshell": False
+    "isOffshell": False,
+    "weight": "1"
 },
 "DY": {
     "files": list_files_in_folder(mc_path, "DYJetsToLL_M-50") + list_files_in_folder(mc_path, "DYJetsToLL_M-50_HT-70to100") +list_files_in_folder(mc_path, "DYJetsToLL_M-50_HT-100to200") + list_files_in_folder(mc_path, "DYJetsToLL_M-50_HT-200to400") + list_files_in_folder(mc_path, "DYJetsToLL_M-50_HT-400to600") + list_files_in_folder(mc_path, "DYJetsToLL_M-50_HT-600to800") + list_files_in_folder(mc_path, "DYJetsToLL_M-50_HT-800to1200") + list_files_in_folder(mc_path, "DYJetsToLL_M-50_HT-1200to2500") + list_files_in_folder(mc_path, "DYJetsToLL_M-50_HT-2500toInf"),
     "isMC": True,
     "isSignal": False,
-    "isOffshell": False
+    "isOffshell": False,
+    "weight": "Generator_weight"
 },
 "DY_else": {
     "files": list_files_in_folder(mc_path, "DYJetsToLL_M-10to50-LO"),
     "isMC": True,
     "isSignal": False,
-    "isOffshell": False
+    "isOffshell": False,
+    "weight": "Generator_weight"
 },
 "Top": {
-    "files": list_files_in_folder(mc_path, "TTToSemiLeptonic") + list_files_in_folder(mc_path, 'TTTo2L2Nu') + list_files_in_folder(mc_path,'TTWJetsToLNu') + list_files_in_folder(mc_path,'TTWjets') + list_files_in_folder(mc_path,'ST_s-channel') + list_files_in_folder(mc_path,'ST_t-channel_antitop') + list_files_in_folder(mc_path,'ST_t-channel_top') + list_files_in_folder(mc_path, 'ST_tW_antitop') + list_files_in_folder(mc_path,'ST_tW_top'),
+    "files": list_files_in_folder(mc_path, "TTTo2L2Nu") + list_files_in_folder(mc_path, "TTToSemiLeptonic") + list_files_in_folder(mc_path, "ST_s-channel_4f_leptonDecays") + list_files_in_folder(mc_path, "ST_t-channel_antitop_4f_InclusiveDecays") + list_files_in_folder(mc_path, "ST_t-channel_top_4f_InclusiveDecays") + list_files_in_folder(mc_path, "ST_tW_antitop_5f_inclusiveDecays") + list_files_in_folder(mc_path, "ST_tW_top_5f_inclusiveDecays"),
     "isMC": True,
     "isSignal": False,
-    "isOffshell": False
+    "isOffshell": False,
+    "weight": "Generator_weight"
 },
 "WW": {
     "files": list_files_in_folder(mc_path,'WmToLNu_WmTo2J_QCD') + list_files_in_folder(mc_path,'WpToLNu_WpTo2J_QCD'),
     "isMC": True,
     "isSignal": False,
-    "isOffshell": False
+    "isOffshell": False,
+    "weight": "Generator_weight"
 },
 "ggH_bonly_on": {
     "files": list_files_in_folder(mc_path,'GluGluToWWToQQ_Cont_private'),
     "isMC": True,
     "isSignal": False,
-    "isOffshell": False
+    "isOffshell": False,
+    "weight": "Generator_weight*(mWW<160)"
 },
 "ggH_bonly_off": {
     "files": list_files_in_folder(mc_path,'GluGluToWWToQQ_Cont_private'),
     "isMC": True,
     "isSignal": False,
-    "isOffshell": True
+    "isOffshell": True,
+    "weight": "Generator_weight*(mWW>160)"
 },
 "qqWWqq": {
     "files": list_files_in_folder(mc_path,'WpTo2J_WmToLNu_QCD') + list_files_in_folder(mc_path,'WpToLNu_WmTo2J_QCD'),
     "isMC": True,
     "isSignal": False,
-    "isOffshell": False
+    "isOffshell": False,
+    "weight": "Generator_weight"
 },
 "W + jets": {
     "files": list_files_in_folder(mc_path,'WJetsToLNu-LO') + list_files_in_folder(mc_path,'WJetsToLNu_HT70To100') + list_files_in_folder(mc_path,'WJetsToLNu_HT100To200') + list_files_in_folder(mc_path,'WJetsToLNu_HT200To400') + list_files_in_folder(mc_path,'WJetsToLNu_HT400To600') + list_files_in_folder(mc_path,'WJetsToLNu_HT600To800') + list_files_in_folder(mc_path,'WJetsToLNu_HT800To1200') + list_files_in_folder(mc_path,'WJetsToLNu_HT1200To2500') + list_files_in_folder(mc_path,'WJetsToLNu_HT2500ToInf'),
     "isMC": True,
     "isSignal": False,
-    "isOffshell": False
+    "isOffshell": False,
+    "weight": "Generator_weight"
 },
 "Vg": {
     "files": list_files_in_folder(mc_path,'WGToLNuG') + list_files_in_folder(mc_path,'ZGToLLG'),
     "isMC": True,
     "isSignal": False,
-    "isOffshell": False
+    "isOffshell": False,
+    "weight": "Generator_weight"
 },
 "VgS": {
     "files": list_files_in_folder(mc_path,'WGToLNuG') + list_files_in_folder(mc_path,'ZGToLLG') + list_files_in_folder(mc_path,'WZTo3LNu_mllmin0p1'),
     "isMC": True,
     "isSignal": False,
-    "isOffshell": False
+    "isOffshell": False,
+    "weight": "Generator_weight"
 },
 "VZ": {
     "files": list_files_in_folder(mc_path, 'ZZ') + list_files_in_folder(mc_path,'WZ') + list_files_in_folder(mc_path,'WmToLNu_ZTo2J_QCD') + list_files_in_folder(mc_path,'WpToLNu_ZTo2J_QCD'),
     "isMC": True,
     "isSignal": False,
-    "isOffshell": False
+    "isOffshell": False,
+    "weight": "Generator_weight"
 },
 "VVV": {
     "files": list_files_in_folder(mc_path,'ZZZ') + list_files_in_folder(mc_path,'WZZ') + list_files_in_folder(mc_path,'WWZ') + list_files_in_folder(mc_path,'WWW'),
     "isMC": True,
     "isSignal": False,
-    "isOffshell": False
+    "isOffshell": False,
+    "weight": "Generator_weight"
 },
 "WWewk": {
     "files": list_files_in_folder(mc_path,'WpTo2J_WmToLNu') + list_files_in_folder(mc_path,'WpToLNu_WmTo2J') + list_files_in_folder(mc_path,'WpToLNu_WpTo2J') + list_files_in_folder(mc_path,'WmToLNu_WmTo2J'),
     "isMC": True,
     "isSignal": False,
-    "isOffshell": False
+    "isOffshell": False,
+    "weight": "Generator_weight"
 },
 "VBF_V": {
     "files": list_files_in_folder(mc_path,'Wm_LNuJJ_EWK') + list_files_in_folder(mc_path,'Wp_LNuJJ_EWK'),
     "isMC": True,
     "isSignal": False,
-    "isOffshell": False
+    "isOffshell": False,
+    "weight": "Generator_weight"
 },
 "ggH_sonly_on": {
     "files": list_files_in_folder(mc_path,'GluGluToWWToQQ_Sig_private'),
     "isMC": True,
     "isSignal": True,
-    "isOffshell": False
+    "isOffshell": False,
+    "weight": "Generator_weight*(mWW<160)"
 },
 "ggH_sonly_off": {
     "files": list_files_in_folder(mc_path,'GluGluToWWToQQ_Sig_private'),
     "isMC": True,
     "isSignal": True,
-    "isOffshell": True
+    "isOffshell": True,
+    "weight": "Generator_weight*(mWW>160)"
 },
 "ggH_sand_off": {
     "files": list_files_in_folder(mc_path,'GluGluToWWToQQ_SBI_private'),
     "isMC": True,
     "isSignal": True,
-    "isOffshell": True
+    "isOffshell": True,
+    "weight": "Generator_weight*(mWW>160)"
 },
 "ggH_sand_on": {
     "files": list_files_in_folder(mc_path,'GluGluToWWToQQ_SBI_private'),
     "isMC": True,
     "isSignal": True,
-    "isOffshell": False
+    "isOffshell": False,
+    "weight": "Generator_weight*(mWW<160)"
 },
 }

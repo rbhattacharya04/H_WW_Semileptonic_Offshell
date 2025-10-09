@@ -6,20 +6,45 @@ ROOT.gInterpreter.ProcessLine(".O3")
 ROOT.EnableImplicitMT()
 ROOT.gInterpreter.Declare('#include "SemiLeptonic.h"')
 
-def makeRDF(files, isMC):
+
+def makeRDF(dataset_name):
     results = {}
+
+    # Get files and isMC from dataset
+    files = dataset[dataset_name]["files"]
+    isMC = dataset[dataset_name]["isMC"]
     df = ROOT.RDataFrame("Events", files)
+
     #df = df.Range(1000)
     ROOT.RDF.Experimental.AddProgressBar(df)
-    df = df.Define("weight","1")
-    df = df.Redefine("weight","weight*Generator_weight")
+
+    # Define mWW first 
+    if isMC:
+        df = df.Define("mWW", "computeMWW(nLHEPart, LHEPart_pt, LHEPart_eta, LHEPart_phi, LHEPart_mass, LHEPart_pdgId, LHEPart_status)")
+    
+   # Use weight from Dataset.py (this includes mWW cuts automatically!)
+    df = df.Define("weight", dataset[dataset_name]["weight"])
+    
+    
+    #comment out the following two lines as I have defined weight as above
+    # df = df.Redefine("weight","weight*Generator_weight")
+    
     df = df.Define("cutflow_stage","0")
     results["Cutflow1"] = df.Histo1D(("h_cutflow_1","Cutflow 1",1,-0.5,0.5),"cutflow_stage","weight")
+    
+    # Using direct HLT filter
     df = df.Filter("HLT_IsoMu24 || HLT_Ele32_WPTight_Gsf","HLT Cut")
     results["Cutflow2"] = df.Histo1D(("h_cutflow_2","Cutflow 2",1,-0.5,0.5),"cutflow_stage","weight")
     #if isMC: df = df.Redefine("weight","weight*puWeight*EMTFbug_veto")
     #df = df.Define("weight","1")
-     
+    
+    # Original lepton tight definitions
+    ele_tight = "(abs(Lepton_pdgId) == 11 && Lepton_isTightElectron_mvaFall17V2Iso_WP90)"
+    mu_tight = "(abs(Lepton_pdgId) == 13 && Lepton_isTightMuon_cut_Tight_HWWW)"
+    lepton_tight = ele_tight + " || " + mu_tight
+    
+    # Original lepton tight definitions (simpler approach)
+    # The try-except block above will catch and handle missing columns
     ele_tight = "(abs(Lepton_pdgId) == 11 && Lepton_isTightElectron_mvaFall17V2Iso_WP90)"
     mu_tight = "(abs(Lepton_pdgId) == 13 && Lepton_isTightMuon_cut_Tight_HWWW)"
     lepton_tight = ele_tight + " || " + mu_tight
@@ -40,6 +65,7 @@ def makeRDF(files, isMC):
    
     results["Cutflow4"] = df.Histo1D(("h_cutflow_4","Cutflow 4",1,-0.5,0.5),"cutflow_stage","weight")
       
+    # Generate report
     report = df.Report()
     report.Print()
  
@@ -49,8 +75,8 @@ histograms = {}
 
 
 #for keys in dataset:
-histograms["ggH_sonly_off"] = makeRDF(dataset["ggH_sonly_off"],True)
-
+#histograms["ggH_sonly_off"] = makeRDF(dataset["ggH_sonly_off"],True)
+histograms["ggH_sonly_off"] = makeRDF("ggH_sonly_off")
 #print(histograms)
 
 #file_path = "my_histograms_ggH_sonly_off_Step_3.pkl"
