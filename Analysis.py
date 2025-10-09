@@ -12,7 +12,28 @@ def makeRDF(files, isMC):
     #df = df.Range(1000)
     ROOT.RDF.Experimental.AddProgressBar(df)
     df = df.Define("weight","1")
-    df = df.Redefine("weight","weight*Generator_weight")
+    #df = df.Redefine("weight","weight*Generator_weight") XS weight is defined below
+    df = df.Define("mWW", "computeMWW(nLHEPart, LHEPart_pt, LHEPart_eta, LHEPart_phi, LHEPart_mass, LHEPart_pdgId, LHEPart_status)")
+
+    #comment out the following two lines as I have defined weight as above
+    df = df.Redefine("weight","weight*XSWeight") #XSWeight is genweight*baseW https://github.com/sv3048/LatinoAnalysis/blob/SemilepOFFSHELL/NanoGardener/python/data/formulasToAdd_MCnoSF_Full2018v9.py#L29-L31
+    df = df.Redefine("weight","weight*METFilter_MC")
+    df = df.Define("Lepton_promptgenmatched", "(Lepton_promptgenmatched.size() > 0) ? Lepton_promptgenmatched[0] : 1")
+    df = df.Redefine("weight", "weight*Lepton_promptgenmatched")
+    df = df.Redefine("weight", "weight*puWeight")
+    df = df.Define("LepWPSF", "((Lepton_isTightElectron_mvaFall17V2Iso_WP90[0] > 0.5) * Lepton_tightElectron_mvaFall17V2Iso_WP90_TotSF[0] + (Lepton_isTightMuon_cut_Tight_HWWW[0] > 0.5) * Lepton_tightMuon_cut_Tight_HWWW_TotSF[0])")
+    df = df.Redefine("weight", "weight*LepWPSF")
+    df = df.Redefine("weight", "weight*EMTFbug_veto")
+
+    df = df.Define("cutflow_stage","0")
+    results["Cutflow1"] = df.Histo1D(("h_cutflow_1","Cutflow 1",1,-0.5,0.5),"cutflow_stage","weight")
+
+    # Using direct HLT filter
+    df = df.Filter("HLT_IsoMu24 || HLT_Ele32_WPTight_Gsf","HLT Cut")
+    results["Cutflow2"] = df.Histo1D(("h_cutflow_2","Cutflow 2",1,-0.5,0.5),"cutflow_stage","weight")
+    #if isMC: df = df.Redefine("weight","weight*puWeight*EMTFbug_veto")
+    #df = df.Define("weight","1")
+
     df = df.Define("cutflow_stage","0")
     results["Cutflow1"] = df.Histo1D(("h_cutflow_1","Cutflow 1",1,-0.5,0.5),"cutflow_stage","weight")
     df = df.Filter("HLT_IsoMu24 || HLT_Ele32_WPTight_Gsf","HLT Cut")
