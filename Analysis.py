@@ -91,7 +91,12 @@ def makeRDF(dataset_name):
     #df = df.Filter("AnaFatJet_jetId == 2", "Tight Jet Id cut")
     df = df.Filter("AnaFatJet_pt>200","Jet pT cut")
     df = df.Filter("abs(AnaFatJet_eta)<2.4","Jet Eta cut")
-      
+    df = df.Define("CleanJet_notOverlapping", "getCleanJetNotOverlapping(FatJet_eta[GoodFatJet_idx], FatJet_phi[GoodFatJet_idx], CleanJet_eta, CleanJet_phi)")
+    df = df.Define("bVeto_boo", "bVeto_boo(CleanJet_pt, CleanJet_eta, CleanJet_jetIdx, Jet_btagDeepFlavB, CleanJet_notOverlapping)")
+    df = df.Filter("bVeto_boo", "bjet veto")
+
+    results["Cutflow5"] = df.Histo1D(("h_cutflow_5","Cutflow 5",1,-0.5,0.5),"cutflow_stage","weight")
+
     report = df.Report()
     report.Print()
  
@@ -117,4 +122,5 @@ histograms["ggH_sonly_off"]["Cutflow1"].Write()
 histograms["ggH_sonly_off"]["Cutflow2"].Write()
 histograms["ggH_sonly_off"]["Cutflow3"].Write()
 histograms["ggH_sonly_off"]["Cutflow4"].Write()
+histograms["ggH_sonly_off"]["Cutflow5"].Write()
 output_file.Close()
