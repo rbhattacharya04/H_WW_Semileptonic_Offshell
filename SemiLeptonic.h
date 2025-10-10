@@ -120,6 +120,7 @@ double getTriggerSF(float Lepton_pdgId, float Ele_Trigger_SF, float Mu_Trigger_S
   return weight;
 }
 
+<<<<<<< HEAD
 float deltaPhi(float phi1, float phi2)
 {                                                        
   float result = phi1 - phi2;
@@ -156,6 +157,10 @@ int isGoodFatjet_indx(const RVec<Float_t>& FatJet_eta, const RVec<Float_t>& FatJ
   return -1;
 }
 
+=======
+
+// Function to compute the PU Jet ID Scale Factor
+>>>>>>> d592bfc (addition of PUJetIdSF function calculation)
 inline double computePUJetIdSF(const UInt_t& nJet,
                                const RVec<Int_t>& Jet_jetId,
                                const RVec<Int_t>& Jet_electronIdx1,
@@ -163,7 +168,11 @@ inline double computePUJetIdSF(const UInt_t& nJet,
                                const RVec<Float_t>& Jet_PUIDSF_loose,
                                const Int_t& Leading_Lepton_electronIdx,
                                const Int_t& Leading_Lepton_muonIdx) {
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> d592bfc (addition of PUJetIdSF function calculation)
     double logSum = 0.0;
     for (UInt_t iJet = 0; iJet < nJet; ++iJet) {
         if (Jet_jetId[iJet] < 2) continue;
@@ -173,3 +182,7 @@ inline double computePUJetIdSF(const UInt_t& nJet,
     }
     return TMath::Exp(logSum);
 }
+<<<<<<< HEAD
+=======
+
+>>>>>>> d592bfc (addition of PUJetIdSF function calculation)
