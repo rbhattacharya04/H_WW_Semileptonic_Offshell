@@ -235,3 +235,45 @@ inline double bVeto_booSF(
     }
     return std::exp(logSum);
 }
+
+
+// for addition of bTagSF
+inline bool bReq_boo(
+    const RVec<Float_t>& CleanJet_pt,
+    const RVec<Float_t>& CleanJet_eta,
+    const RVec<Int_t>& CleanJet_jetIdx,
+    const RVec<Float_t>& Jet_btagDeepFlavB,
+    const RVec<int>& CleanJet_notOverlapping,
+    float bWP = 0.2783
+) {
+    for (auto idx : CleanJet_notOverlapping) {
+        if (CleanJet_pt[idx] > 30 && std::abs(CleanJet_eta[idx]) < 2.5) {
+            int jetIdx = CleanJet_jetIdx[idx];
+            if (jetIdx >= 0 && jetIdx < Jet_btagDeepFlavB.size()) {
+                if (Jet_btagDeepFlavB[jetIdx] > bWP) return true;
+            }
+        }
+    }
+    return false;
+}
+
+inline double bReq_booSF(
+    const RVec<Float_t>& CleanJet_pt,
+    const RVec<Float_t>& CleanJet_eta,
+    const RVec<Int_t>& CleanJet_jetIdx,
+    const RVec<Float_t>& Jet_btagSF_deepjet_shape,
+    const RVec<int>& CleanJet_notOverlapping,
+    float ptCut = 30.0
+) {
+    double logSum = 0.0;
+    for (auto idx : CleanJet_notOverlapping) {
+        bool passJet = (CleanJet_pt[idx] > ptCut) && (std::abs(CleanJet_eta[idx]) < 2.5);
+        int jetIdx = CleanJet_jetIdx[idx];
+        if (jetIdx >= 0 && jetIdx < Jet_btagSF_deepjet_shape.size()) {
+            if (passJet) {
+                logSum += std::log(Jet_btagSF_deepjet_shape[jetIdx]);
+            }
+        }
+    }
+    return std::exp(logSum);
+}
