@@ -99,8 +99,8 @@ def makeRDF(dataset_name):
     #df = df.Define("boosted_nocut_res", "PuppiMET_pt > 40 && GoodFatJet_idx >= 0 && FatJet_pt[GoodFatJet_idx] > 200 && FatJet_deepTag_WvsQCD[GoodFatJet_idx] > 0.961 && abs(FatJet_eta[GoodFatJet_idx]) < 2.4")
 
     if isMC:
-        df = df.Define("btagSF", "bVeto_booSF * bVeto_boo + bReq_booSF * bReq_boo")
         df = df.Define("bVeto_booSF","bVeto_booSF(CleanJet_pt, CleanJet_eta, CleanJet_jetIdx, Jet_btagSF_deepjet_shape, CleanJet_notOverlapping, 20.0)")
+        df = df.Define("btagSF", "bVeto_booSF * bVeto_boo + bReq_booSF * bReq_boo")
         df = df.Redefine("weight","weight*bVeto_booSF")
         df = df.Redefine("weight","weight*btagSF")
    
