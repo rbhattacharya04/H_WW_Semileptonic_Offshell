@@ -5,6 +5,7 @@
 #include "TLatex.h"
 #include "Math/Vector4D.h"
 #include "TStyle.h"
+#include "TLorentzVector.h"
 #include <string>
 
 #include <boost/algorithm/string/join.hpp>
@@ -117,4 +118,58 @@ double getTriggerSF(float Lepton_pdgId, float Ele_Trigger_SF, float Mu_Trigger_S
   if (abs(Lepton_pdgId) == 11) weight = Ele_Trigger_SF;
   else if (abs(Lepton_pdgId) == 13) weight = Mu_Trigger_SF;
   return weight;
+}
+
+float deltaPhi(float phi1, float phi2)
+{                                                        
+  float result = phi1 - phi2;
+  while (result > float(M_PI)) result -= float(2*M_PI);
+  while (result <= -float(M_PI)) result += float(2*M_PI);
+  return result;
+}
+
+float deltaR2(float eta1, float phi1, float eta2, float phi2)
+{
+  float deta = std::abs(eta1-eta2);
+  float dphi = deltaPhi(phi1,phi2);
+  return deta*deta + dphi*dphi;
+}
+
+float deltaR(float eta1, float phi1, float eta2, float phi2)
+{
+  return std::sqrt(deltaR2(eta1,phi1,eta2,phi2));
+}
+
+int isGoodFatjet_indx(const RVec<Float_t>& FatJet_eta, const RVec<Float_t>& FatJet_phi,
+                          const RVec<Float_t>& Lepton_eta, const RVec<Float_t>& Lepton_phi)
+{
+  for(unsigned int iJet = 0; iJet < FatJet_eta.size(); iJet++){
+    float dr = 999.;
+
+    for (unsigned int iLep = 0; iLep < Lepton_eta.size(); iLep++){
+      float tmp_dr  = deltaR(FatJet_eta.at(iJet), FatJet_phi.at(iJet),
+	  Lepton_eta.at(iLep), Lepton_phi.at(iLep));
+      if (tmp_dr < dr) dr = tmp_dr;
+    }
+    if (dr > 0.8) return iJet;         
+  }
+  return -1;
+}
+
+inline double computePUJetIdSF(const UInt_t& nJet,
+                               const RVec<Int_t>& Jet_jetId,
+                               const RVec<Int_t>& Jet_electronIdx1,
+                               const RVec<Int_t>& Jet_muonIdx1,
+                               const RVec<Float_t>& Jet_PUIDSF_loose,
+                               const Int_t& Leading_Lepton_electronIdx,
+                               const Int_t& Leading_Lepton_muonIdx) {
+
+    double logSum = 0.0;
+    for (UInt_t iJet = 0; iJet < nJet; ++iJet) {
+        if (Jet_jetId[iJet] < 2) continue;
+        if (Jet_electronIdx1[iJet] >= 0 && Jet_electronIdx1[iJet] == Leading_Lepton_electronIdx) continue;
+        if (Jet_muonIdx1[iJet] >= 0 && Jet_muonIdx1[iJet] == Leading_Lepton_muonIdx) continue;
+        if (Jet_PUIDSF_loose[iJet] > 0) logSum += TMath::Log(Jet_PUIDSF_loose[iJet]);
+    }
+    return TMath::Exp(logSum);
 }
