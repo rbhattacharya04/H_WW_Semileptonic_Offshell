@@ -277,3 +277,20 @@ inline double bReq_booSF(
     }
     return std::exp(logSum);
 }
+
+inline bool boosted_nocut_res(
+    float PuppiMET_pt,
+    int GoodFatJet_idx,
+    const RVec<Float_t>& FatJet_pt,
+    const RVec<Float_t>& FatJet_deepTag_WvsQCD,
+    const RVec<Float_t>& FatJet_eta
+) {
+    if (
+        PuppiMET_pt > 40 &&
+        GoodFatJet_idx >= 0 &&
+        FatJet_pt[GoodFatJet_idx] > 200 &&
+        FatJet_deepTag_WvsQCD[GoodFatJet_idx] > 0.961 &&
+        std::abs(FatJet_eta[GoodFatJet_idx]) < 2.4
+    ) return true;
+    return false;
+}
