@@ -118,3 +118,24 @@ double getTriggerSF(float Lepton_pdgId, float Ele_Trigger_SF, float Mu_Trigger_S
   else if (abs(Lepton_pdgId) == 13) weight = Mu_Trigger_SF;
   return weight;
 }
+
+
+// Function to compute the PU Jet ID Scale Factor
+inline double computePUJetIdSF(const UInt_t& nJet,
+                               const RVec<Int_t>& Jet_jetId,
+                               const RVec<Int_t>& Jet_electronIdx1,
+                               const RVec<Int_t>& Jet_muonIdx1,
+                               const RVec<Float_t>& Jet_PUIDSF_loose,
+                               const Int_t& Leading_Lepton_electronIdx,
+                               const Int_t& Leading_Lepton_muonIdx) {
+    
+    double logSum = 0.0;
+    for (UInt_t iJet = 0; iJet < nJet; ++iJet) {
+        if (Jet_jetId[iJet] < 2) continue;
+        if (Jet_electronIdx1[iJet] >= 0 && Jet_electronIdx1[iJet] == Leading_Lepton_electronIdx) continue;
+        if (Jet_muonIdx1[iJet] >= 0 && Jet_muonIdx1[iJet] == Leading_Lepton_muonIdx) continue;
+        if (Jet_PUIDSF_loose[iJet] > 0) logSum += TMath::Log(Jet_PUIDSF_loose[iJet]);
+    }
+    return TMath::Exp(logSum);
+}
+
