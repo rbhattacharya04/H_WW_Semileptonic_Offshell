@@ -91,7 +91,24 @@ def makeRDF(dataset_name):
     #df = df.Filter("AnaFatJet_jetId == 2", "Tight Jet Id cut")
     df = df.Filter("AnaFatJet_pt>200","Jet pT cut")
     df = df.Filter("abs(AnaFatJet_eta)<2.4","Jet Eta cut")
-      
+    df = df.Define("CleanJet_notOverlapping", "getCleanJetNotOverlapping(FatJet_eta[GoodFatJet_idx], FatJet_phi[GoodFatJet_idx], CleanJet_eta, CleanJet_phi)")
+    df = df.Define("bVeto_boo", "bVeto_boo(CleanJet_pt, CleanJet_eta, CleanJet_jetIdx, Jet_btagDeepFlavB, CleanJet_notOverlapping)")
+    df = df.Filter("bVeto_boo", "bjet veto")
+    df = df.Define("bReq_boo", "bReq_boo(CleanJet_pt, CleanJet_eta, CleanJet_jetIdx, Jet_btagDeepFlavB, CleanJet_notOverlapping)")
+    df = df.Define("bReq_booSF", "bReq_booSF(CleanJet_pt, CleanJet_eta, CleanJet_jetIdx, Jet_btagSF_deepjet_shape, CleanJet_notOverlapping, 30.0)")
+    df = df.Define("boosted_nocut_res", "boosted_nocut_res(PuppiMET_pt, GoodFatJet_idx, FatJet_pt, FatJet_deepTag_WvsQCD, FatJet_eta)"
+)
+    #df = df.Define("boosted_nocut_res", "PuppiMET_pt > 40 && GoodFatJet_idx >= 0 && FatJet_pt[GoodFatJet_idx] > 200 && FatJet_deepTag_WvsQCD[GoodFatJet_idx] > 0.961 && abs(FatJet_eta[GoodFatJet_idx]) < 2.4")
+
+    if isMC:
+        df = df.Define("bVeto_booSF","bVeto_booSF(CleanJet_pt, CleanJet_eta, CleanJet_jetIdx, Jet_btagSF_deepjet_shape, CleanJet_notOverlapping, 20.0)")
+        df = df.Define("btagSF", "boosted_nocut_res * bVeto_booSF * bVeto_boo + bReq_booSF * bReq_boo")
+        df = df.Redefine("weight","weight*bVeto_booSF")
+        df = df.Redefine("weight","weight*btagSF")
+   
+
+    results["Cutflow5"] = df.Histo1D(("h_cutflow_5","Cutflow 5",1,-0.5,0.5),"cutflow_stage","weight")
+
     report = df.Report()
     report.Print()
  
@@ -117,4 +134,5 @@ histograms["ggH_sonly_off"]["Cutflow1"].Write()
 histograms["ggH_sonly_off"]["Cutflow2"].Write()
 histograms["ggH_sonly_off"]["Cutflow3"].Write()
 histograms["ggH_sonly_off"]["Cutflow4"].Write()
+histograms["ggH_sonly_off"]["Cutflow5"].Write()
 output_file.Close()
