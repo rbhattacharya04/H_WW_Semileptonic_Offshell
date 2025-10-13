@@ -1,12 +1,13 @@
 from Dataset import dataset
 import pickle
+import argparse
 
 import ROOT
 ROOT.gInterpreter.ProcessLine(".O3")
 ROOT.EnableImplicitMT()
 ROOT.gInterpreter.Declare('#include "SemiLeptonic.h"')
 
-def makeRDF(dataset_name):
+def makeRDF(dataset_name, wtagger="Nominal"):
     results = {}
     # Get files and isMC from dataset
     files = dataset[dataset_name]["files"]
@@ -81,16 +82,34 @@ def makeRDF(dataset_name):
     if isMC:
         df = df.Define("JetPUIDSF","computePUJetIdSF(nJet,Jet_jetId,Jet_electronIdx1,Jet_muonIdx1,Jet_PUIDSF_loose,Leading_Lepton_electronIdx,Leading_Lepton_muonIdx)")
         df = df.Redefine("weight","weight*JetPUIDSF")
-    df = df.Define("GoodFatJet_idx","isGoodFatjet_indx(FatJet_eta,FatJet_phi,Lepton_eta,Lepton_phi)")
+    df = df.Define("GoodFatJet_idx","isGoodFatjet_indx(FatJet_eta,FatJet_phi,FatJet_jetId,Lepton_eta,Lepton_phi)")
     df = df.Filter("GoodFatJet_idx != -1", "Good Fat Jet cut")
     df = df.Define("AnaFatJet_pt","FatJet_pt[GoodFatJet_idx]")
     df = df.Define("AnaFatJet_eta","FatJet_eta[GoodFatJet_idx]")
     df = df.Define("AnaFatJet_phi", "FatJet_phi[GoodFatJet_idx]")
     df = df.Define("AnaFatJet_jetId","FatJet_jetId[GoodFatJet_idx]")
-    df = df.Filter("AnaFatJet_jetId > 0", "Jet Id cut")
+    if wtagger == "Nominal":
+        df = df.Define("AnaFatJet_nom_wtag","FatJet_particleNet_WvsQCD[GoodFatJet_idx]")
+        if isMC:
+            if hasattr(ROOT, "initializeWTaggerSF"):
+                ROOT.initializeWTaggerSF("W_Nominal_Run2_SF.csv")
+    elif wtagger == "MD":
+        df = df.Define("AnaFatJet_md_wtag","(FatJet_particleNetMD_Xcc[GoodFatJet_idx] + FatJet_particleNetMD_Xqq[GoodFatJet_idx])/(FatJet_particleNetMD_Xcc[GoodFatJet_idx] + FatJet_particleNetMD_Xqq[GoodFatJet_idx] + FatJet_particleNetMD_QCD[GoodFatJet_idx])")
+        if isMC:
+            if hasattr(ROOT, "initializeWTaggerSF"):
+                ROOT.initializeWTaggerSF("W_MD_Run2_SF.csv")
     #df = df.Filter("AnaFatJet_jetId == 2", "Tight Jet Id cut")
     df = df.Filter("AnaFatJet_pt>200","Jet pT cut")
-    df = df.Filter("abs(AnaFatJet_eta)<2.4","Jet Eta cut")
+    if wtagger == "Nominal":
+        df = df.Filter("AnaFatJet_nom_wtag > 0.94","Wtagger Nominal 0p5 cut")
+        if isMC:
+            df = df.Define("WTagger_SF","getWTaggerSF(AnaFatJet_pt)")
+            df = df.Redefine("weight","weight*WTagger_SF")
+    elif wtagger == "MD":
+        df = df.Filter("AnaFatJet_md_wtag > 0.90"," Wtagger MD 0p5 cut")
+        if isMC:
+            df = df.Define("WTagger_SF","getWTaggerSF(AnaFatJet_pt)")
+            df = df.Redefine("weight","weight*WTagger_SF")
     df = df.Define("CleanJet_notOverlapping", "getCleanJetNotOverlapping(FatJet_eta[GoodFatJet_idx], FatJet_phi[GoodFatJet_idx], CleanJet_eta, CleanJet_phi)")
     df = df.Define("bVeto_boo", "bVeto_boo(CleanJet_pt, CleanJet_eta, CleanJet_jetIdx, Jet_btagDeepFlavB, CleanJet_notOverlapping)")
     df = df.Filter("bVeto_boo", "bjet veto")
@@ -114,12 +133,17 @@ def makeRDF(dataset_name):
  
     return results
 
+parser = argparse.ArgumentParser()
+parser.add_argument("-w","--wtag", help="WTagger option Nominal, MD", type=str,default = "Nominal")
+args = parser.parse_args()
+
+
 histograms = {}
 
 
 #for keys in dataset:
 #histograms["ggH_sonly_off"] = makeRDF(dataset["ggH_sonly_off"],True)
-histograms["ggH_sonly_off"] = makeRDF("ggH_sonly_off")
+histograms["ggH_sonly_off"] = makeRDF("ggH_sonly_off",args.wtag)
 #print(histograms)
 
 #file_path = "my_histograms_ggH_sonly_off_Step_3.pkl"

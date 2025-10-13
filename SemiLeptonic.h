@@ -19,6 +19,7 @@ using namespace ROOT;
 using namespace ROOT::VecOps;
 
 std::vector<std::array<float,7>> _values = {};
+std::vector<std::array<float,9>> _wtagger_sfs = {};
 
 bool isAnalysisLepton(float Leading_Lepton_pdgId, float Leading_Lepton_pt, float Leading_Lepton_eta, float Leading_Lepton_phi){
   bool isAnaLepton = false;
@@ -92,6 +93,27 @@ void initializeEleTriggerSF(){
   }
 }
 
+void initializeWTaggerSF(std::string file){
+  std::ifstream inputFile(file);
+  std::string line;
+  if (inputFile.is_open()){
+
+    while(getline(inputFile, line)){
+      std::stringstream ss(line);
+      std::array<float,9> line_values{};
+      int i = 0;
+      float value;
+      while (ss >> value)
+      {
+        line_values[i] = value;
+        ++i;
+      }
+      _wtagger_sfs.push_back(line_values);
+    }
+  }
+}
+
+
 double getEleTriggerSF(float Lepton_pdgId, float Lepton_pt, float Lepton_eta){
   double weight = 1;
   if (abs(Lepton_pdgId) != 11) return weight;
@@ -104,6 +126,26 @@ double getEleTriggerSF(float Lepton_pdgId, float Lepton_pt, float Lepton_eta){
   for (uint j = 0; j< _values.size(); j++){
     if (Lepton_eta >= _values[j][0] && Lepton_eta <= _values[j][1] && Lepton_pt >= _values[j][2] && Lepton_pt <= _values[j][3]){
       weight = _values[j][4];
+      //output[1] = _values[j][4] + _values[j][5];
+      //output[2] = _values[j][4] - _values[j][6] ;
+      break;
+    }
+  }
+
+  return weight;
+}
+
+double getWTaggerSF(float Jet_pt,float year = 2018, float wp = 0.5){
+  double weight = 1;
+
+  //handle overflow
+  if (Jet_pt > 800) Jet_pt = 799.9;
+
+  for (uint j = 0; j< _wtagger_sfs.size(); j++){
+    if (_wtagger_sfs[j][1] != year) continue;
+    if (_wtagger_sfs[j][3] != wp) continue;
+    if (Jet_pt >= _wtagger_sfs[j][4] && Jet_pt <= _wtagger_sfs[j][5]){
+      weight = _wtagger_sfs[j][6];
       //output[1] = _values[j][4] + _values[j][5];
       //output[2] = _values[j][4] - _values[j][6] ;
       break;
@@ -141,10 +183,13 @@ float deltaR(float eta1, float phi1, float eta2, float phi2)
 }
 
 int isGoodFatjet_indx(const RVec<Float_t>& FatJet_eta, const RVec<Float_t>& FatJet_phi,
+                          const RVec<Int_t>& FatJet_jetId,
                           const RVec<Float_t>& Lepton_eta, const RVec<Float_t>& Lepton_phi)
 {
   for(unsigned int iJet = 0; iJet < FatJet_eta.size(); iJet++){
     float dr = 999.;
+    if (FatJet_jetId.at(iJet) < 0) continue;
+    if (abs(FatJet_eta.at(iJet)) > 2.4) continue;
 
     for (unsigned int iLep = 0; iLep < Lepton_eta.size(); iLep++){
       float tmp_dr  = deltaR(FatJet_eta.at(iJet), FatJet_phi.at(iJet),
@@ -176,6 +221,8 @@ inline double computePUJetIdSF(const UInt_t& nJet,
     }
     return TMath::Exp(logSum);
 }
+
+
 
 
 // Returns indices of CleanJets not overlapping with the selected FatJet (ΔR < 0.8)
