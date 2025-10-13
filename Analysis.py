@@ -74,6 +74,8 @@ def makeRDF(dataset_name, wtagger="Nominal"):
     
     df = df.Define("isVetoLepton","isVetoLepton(nLepton,Lepton_pt,Lepton_isLoose)")
     df = df.Filter("!isVetoLepton", "Veto Lepton Cut")
+
+    df = df.Filter("PuppiMET_pt > 30", "PuppiMET_pt > 30 GeV cut")
    
     results["Cutflow4"] = df.Histo1D(("h_cutflow_4","Cutflow 4",1,-0.5,0.5),"cutflow_stage","weight")
 
