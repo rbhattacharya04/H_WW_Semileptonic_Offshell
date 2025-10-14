@@ -341,3 +341,111 @@ inline bool boosted_nocut_res(
     ) return true;
     return false;
 }
+
+//  for addition of Samples Weight and cuts
+// Computes the maximum mjj from all pairs of GenJets not overlapping with GenDressedLeptons
+inline float genMjjmax(const UInt_t& nGenJet,
+                       const RVec<Float_t>& GenJet_pt,
+                       const RVec<Float_t>& GenJet_eta,
+                       const RVec<Float_t>& GenJet_phi,
+                       const RVec<Float_t>& GenJet_mass,
+                       const UInt_t& nGenDressedLepton,
+                       const RVec<Float_t>& GenDressedLepton_pt,
+                       const RVec<Float_t>& GenDressedLepton_eta,
+                       const RVec<Float_t>& GenDressedLepton_phi) {
+    std::vector<int> cleanJetIdx;
+    // Select GenJets with pt > 30 and |eta| < 4.7, not overlapping with GenDressedLeptons (ΔR > 0.4)
+    for (UInt_t iJ = 0; iJ < nGenJet; ++iJ) {
+        if (GenJet_pt[iJ] < 30. || std::abs(GenJet_eta[iJ]) > 4.7) continue;
+        bool overlap = false;
+        for (UInt_t iL = 0; iL < nGenDressedLepton; ++iL) {
+            if (GenDressedLepton_pt[iL] < 10.) continue;
+            float dr = deltaR(GenJet_eta[iJ], GenJet_phi[iJ], GenDressedLepton_eta[iL], GenDressedLepton_phi[iL]);
+            if (dr < 0.4) {
+                overlap = true;
+                break;
+            }
+        }
+        if (!overlap) cleanJetIdx.push_back(iJ);
+    }
+    float mjjmax = -999.;
+    // Loop over all pairs of clean jets and compute mjj
+    for (size_t i = 0; i < cleanJetIdx.size(); ++i) {
+        TLorentzVector j1;
+        j1.SetPtEtaPhiM(GenJet_pt[cleanJetIdx[i]], GenJet_eta[cleanJetIdx[i]], GenJet_phi[cleanJetIdx[i]], GenJet_mass[cleanJetIdx[i]]);
+        for (size_t j = i+1; j < cleanJetIdx.size(); ++j) {
+            TLorentzVector j2;
+            j2.SetPtEtaPhiM(GenJet_pt[cleanJetIdx[j]], GenJet_eta[cleanJetIdx[j]], GenJet_phi[cleanJetIdx[j]], GenJet_mass[cleanJetIdx[j]]);
+            float mjj = (j1 + j2).M();
+            if (mjj > mjjmax) mjjmax = mjj;
+        }
+    }
+    return mjjmax;
+}
+
+// df = df.Define("genMjjmax", "genMjjmax(nGenJet, GenJet_pt, GenJet_eta, GenJet_phi, GenJet_mass, nGenDressedLepton, GenDressedLepton_pt, GenDressedLepton_eta, GenDressedLepton_phi)")
+
+
+// Returns true if Gen_ZGstar_mass > 0 and < 4 (gstarLow)
+inline bool gstarLow(float Gen_ZGstar_mass) {
+    return (Gen_ZGstar_mass > 0. && Gen_ZGstar_mass < 4.);
+}
+
+// Returns true if Gen_ZGstar_mass < 0 or > 4 (gstarHigh)
+inline bool gstarHigh(float Gen_ZGstar_mass) {
+    return (Gen_ZGstar_mass < 0. || Gen_ZGstar_mass > 4.);
+}
+
+//df = df.Define("isGstarLow", "gstarLow(Gen_ZGstar_mass)")
+//df = df.Define("isGstarHigh", "gstarHigh(Gen_ZGstar_mass)")
+
+// Top pT reweighting function (Top PAG)
+inline float Top_pTrw(float topGenPtOTF, float antitopGenPtOTF) {
+    if (topGenPtOTF * antitopGenPtOTF > 0.) {
+        float w1 = 0.103 * std::exp(-0.0118 * topGenPtOTF) - 0.000134 * topGenPtOTF + 0.973;
+        float w2 = 0.103 * std::exp(-0.0118 * antitopGenPtOTF) - 0.000134 * antitopGenPtOTF + 0.973;
+        return std::sqrt(w1 * w2);
+    } else {
+        return 1.0;
+    }
+}
+
+// DY photon filter: returns true if event passes the DY photon veto
+inline bool DYPhotonFilter(const UInt_t& nPhotonGen,
+                           const RVec<Float_t>& PhotonGen_pt,
+                           const RVec<Float_t>& PhotonGen_eta,
+                           const RVec<Int_t>& PhotonGen_isPrompt,
+                           const UInt_t& nLeptonGen,
+                           const RVec<Float_t>& LeptonGen_pt,
+                           const RVec<Int_t>& LeptonGen_isPrompt) {
+    int nPromptPhoton = 0;
+    int nPromptLepton = 0;
+    for (UInt_t i = 0; i < nPhotonGen; ++i) {
+        if (PhotonGen_isPrompt[i] == 1 && PhotonGen_pt[i] > 15 && std::abs(PhotonGen_eta[i]) < 2.6)
+            nPromptPhoton++;
+    }
+    for (UInt_t i = 0; i < nLeptonGen; ++i) {
+        if (LeptonGen_isPrompt[i] == 1 && LeptonGen_pt[i] > 15)
+            nPromptLepton++;
+    }
+    // Passes filter if NOT (at least one prompt photon and at least two prompt leptons)
+    return !(nPromptPhoton > 0 && nPromptLepton >= 2);
+}
+
+// df = df.Define("passDYPhotonFilter", "DYPhotonFilter(nPhotonGen, PhotonGen_pt, PhotonGen_eta, PhotonGen_isPrompt, nLeptonGen, LeptonGen_pt, LeptonGen_isPrompt)")
+// df = df.Filter("passDYPhotonFilter")
+
+// Wjets photon filter: returns true if there are NO prompt photons with pt > 10 and |eta| < 2.5
+inline bool WjetsPhotonFilter(const UInt_t& nPhotonGen,
+                              const RVec<Float_t>& PhotonGen_pt,
+                              const RVec<Float_t>& PhotonGen_eta,
+                              const RVec<Int_t>& PhotonGen_isPrompt) {
+    for (UInt_t i = 0; i < nPhotonGen; ++i) {
+        if (PhotonGen_isPrompt[i] == 1 && PhotonGen_pt[i] > 10 && std::abs(PhotonGen_eta[i]) < 2.5)
+            return false; // Event fails filter if any such photon exists
+    }
+    return true; // Event passes filter if no such photon exists
+}
+
+// df = df.Define("passWjetsPhotonFilter", "WjetsPhotonFilter(nPhotonGen, PhotonGen_pt, PhotonGen_eta, PhotonGen_isPrompt)")
+// df = df.Filter("passWjetsPhotonFilter")
