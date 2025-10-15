@@ -19,9 +19,37 @@ def makeRDF(dataset_name, wtagger="Nominal"):
     ROOT.RDF.Experimental.AddProgressBar(df)
     
     df = df.Define("weight","1")
+    # Define only needed variables for weights/filters
     
+ 
     if isMC:
         # Signal sample: LHE mWW and offshell/signal selection
+        df = df.Define("DYPhotonWeight", "float(DYPhotonFilter(nPhotonGen, PhotonGen_pt, PhotonGen_eta, PhotonGen_isPrompt, nLeptonGen, LeptonGen_pt, LeptonGen_isPrompt))")
+        df = df.Define("WWGenWeight", "float(!((mjjGen_max > 150) && GenLHE))")
+        df = df.Define("VgWeight", "float(Gen_ZGstar_mass <= 0)")
+        df = df.Define("gstarLowWeight", "0.94 * float(gstarLow(Gen_ZGstar_mass))")
+        df = df.Define("gstarHighWeight", "1.14 * float(gstarHigh(Gen_ZGstar_mass))")
+        df = df.Define("passDYPhotonFilter", "DYPhotonFilter(nPhotonGen, PhotonGen_pt, PhotonGen_eta, PhotonGen_isPrompt, nLeptonGen, LeptonGen_pt, LeptonGen_isPrompt)")
+        df = df.Define("passWjetsPhotonFilter", "WjetsPhotonFilter(nPhotonGen, PhotonGen_pt, PhotonGen_eta, PhotonGen_isPrompt)")
+        df = df.Define("TopWeight",
+            'float(strstr(inputfile, "TTTo2L2Nu")) * Top_pTrw(topGenPtOTF, antitopGenPtOTF) + '
+            'float(strstr(inputfile, "TTToSemiLeptonic")) * Top_pTrw(topGenPtOTF, antitopGenPtOTF) * 3 + '
+            'float(strstr(inputfile, "ST_t-channel_top")) * (100. / 32.4) + '
+            'float(strstr(inputfile, "ST_t-channel_antitop")) * (100. / 32.4) + '
+            'float(!(strstr(inputfile, "TTTo2L2Nu") || strstr(inputfile, "TTToSemiLeptonic") || strstr(inputfile, "ST_t-channel_top") || strstr(inputfile, "ST_t-channel_antitop"))) * 1.0'
+        )
+        df = df.Define("WjetsHTWeight",
+            'float(strstr(inputfile, "WJetsToLNu-LO")) * float(LHE_HT < 70) + '
+            'float(strstr(inputfile, "WJetsToLNu_HT70To100")) * 1.21 * 0.95148 + '
+            'float(strstr(inputfile, "WJetsToLNu_HT100To200")) * 0.9471 + '
+            'float(strstr(inputfile, "WJetsToLNu_HT200To400")) * 0.9515 + '
+            'float(strstr(inputfile, "WJetsToLNu_HT400To600")) * 0.9581 + '
+            'float(strstr(inputfile, "WJetsToLNu_HT600To800")) * 1.0582 + '
+            'float(strstr(inputfile, "WJetsToLNu_HT800To1200")) * 1.1285 + '
+            'float(strstr(inputfile, "WJetsToLNu_HT1200To2500")) * 1.3268 + '
+            'float(strstr(inputfile, "WJetsToLNu_HT2500ToInf")) * 2.7948'
+        )
+
         if isSignal:
             df = df.Define("Lhe_mWW", "computeMWW(nLHEPart, LHEPart_pt, LHEPart_eta, LHEPart_phi, LHEPart_mass, LHEPart_pdgId, LHEPart_status)")
             if isOffshell:
@@ -31,90 +59,12 @@ def makeRDF(dataset_name, wtagger="Nominal"):
 
         # MC weights and corrections
         df = df.Redefine("weight","weight*XSWeight*METFilter_MC*puWeight*EMTFbug_veto")
-
-        # DY photon filter (as weight ?? )
-        if dataset_name in ["DY", "DY_else"]:
-            df = df.Define("DYPhotonWeight", "DYPhotonFilter(nPhotonGen, PhotonGen_pt, PhotonGen_eta, PhotonGen_isPrompt, nLeptonGen, LeptonGen_pt, LeptonGen_isPrompt) ? 1.0 : 0.0")
-            df = df.Redefine("weight", "weight*DYPhotonWeight")
-
-        # Top pT reweight (dileptonic and semileptonic)
-        top_dileptonic = ["TTTo2L2Nu", "TTWJets", "TTZJets"]
-        top_semileptonic = ["TTToSemiLeptonic", "ST_tW_top", "ST_tW_antitop"]
-        if dataset_name in top_dileptonic:
-            df = df.Define("TopWeight", "Top_pTrw(topGenPtOTF, antitopGenPtOTF)")
-            df = df.Redefine("weight", "weight*TopWeight")
-        elif dataset_name in top_semileptonic:
-            df = df.Define("TopWeight", "Top_pTrw(topGenPtOTF, antitopGenPtOTF) *  ")  # SFs are different 
-
-        # WW sample: Gen-level filter as weight
-        if dataset_name == "WWToLNuQQ":
-            df = df.Define("WWGenWeight", "(!((mjjGen_max > 150) && GenLHE)) ? 1.0 : 0.0")
-            df = df.Redefine("weight", "weight*WWGenWeight")
-
-        # Wjets photon filter and HT stitching
-        if dataset_name == "WJetsToLNu-LO":
-            df = df.Define("WjetsHTWeight", "(LHE_HT < 70) ? 1.0 : 0.0")
-            df = df.Redefine("weight", "weight*WjetsHTWeight")
-        elif dataset_name == "WJetsToLNu_HT70To100":
-            df = df.Define("WjetsHTWeight", "1.21 * 0.95148")
-            df = df.Redefine("weight", "weight*WjetsHTWeight")
-        elif dataset_name == "WJetsToLNu_HT100To200":
-            df = df.Define("WjetsHTWeight", "0.9471")
-            df = df.Redefine("weight", "weight*WjetsHTWeight")
-        elif dataset_name == "WJetsToLNu_HT200To400":
-            df = df.Define("WjetsHTWeight", "0.9515")
-            df = df.Redefine("weight", "weight*WjetsHTWeight")
-        elif dataset_name == "WJetsToLNu_HT400To600":
-            df = df.Define("WjetsHTWeight", "0.9581")
-            df = df.Redefine("weight", "weight*WjetsHTWeight")
-        elif dataset_name == "WJetsToLNu_HT600To800":
-            df = df.Define("WjetsHTWeight", "1.0582")
-            df = df.Redefine("weight", "weight*WjetsHTWeight")
-        elif dataset_name == "WJetsToLNu_HT800To1200":
-            df = df.Define("WjetsHTWeight", "1.1285")
-            df = df.Redefine("weight", "weight*WjetsHTWeight")
-        elif dataset_name == "WJetsToLNu_HT1200To2500":
-            df = df.Define("WjetsHTWeight", "1.3268")
-            df = df.Redefine("weight", "weight*WjetsHTWeight")
-        elif dataset_name == "WJetsToLNu_HT2500ToInf":
-            df = df.Define("WjetsHTWeight", "2.7948")
-            df = df.Redefine("weight", "weight*WjetsHTWeight")
-        # Wjets photon filter (applied to all Wjets)
-        if dataset_name.startswith("WJetsToLNu"):
-            df = df.Define("WjetsPhotonWeight", "WjetsPhotonFilter(nPhotonGen, PhotonGen_pt, PhotonGen_eta, PhotonGen_isPrompt) ? 1.0 : 0.0")
-            df = df.Redefine("weight", "weight*WjetsPhotonWeight")
-
-        # Vg: Gen_ZGstar_mass filter as a weight
-        if dataset_name == "Vg":
-            df = df.Define("VgWeight", "Gen_ZGstar_mass > 0 ? 0.0 : 1.0")
-            df = df.Redefine("weight", "weight*VgWeight")
-
-        # VgS: gstarLow/gstarHigh weights
-        if dataset_name == "VgS":
-            df = df.Define("gstarLowWeight", "gstarLow(Gen_ZGstar_mass) ? 0.94 : 0.0")
-            df = df.Define("gstarHighWeight", "gstarHigh(Gen_ZGstar_mass) ? 1.14 : 0.0")
-            df = df.Redefine("weight", "weight*(gstarLowWeight + gstarHighWeight)")
-
-        # VgS subsamples
-        if dataset_name == "WGToLNuG":
-            df = df.Define("WGToLNuGWeight", "(Gen_ZGstar_mass > 0 && Gen_ZGstar_mass < 0.1) ? 1.0 : 0.0")
-            df = df.Redefine("weight", "weight*WGToLNuGWeight")
-        if dataset_name == "ZGToLLG":
-            df = df.Define("ZGToLLGWeight", "(Gen_ZGstar_mass > 0) ? 0.448 : 0.0")
-            df = df.Redefine("weight", "weight*ZGToLLGWeight")
-        if dataset_name == "WZTo3LNu_mllmin0p1":
-            df = df.Define("WZTo3LNuWeight", "(Gen_ZGstar_mass > 0.1) ? 1.0 : 0.0")
-            df = df.Redefine("weight", "weight*WZTo3LNuWeight")
-
-        # VZ: mjjGen_max filter
-        if dataset_name == "WZ":
-            df = df.Define("VZWeight", "(mjjGen_max < 150) ? 1.0 : 0.0")
-            df = df.Redefine("weight", "weight*VZWeight")
-
-        # WWewk: no extra weight
-        if dataset_name == "WWewk":
-            pass
-
+    ## CHECK ?? 
+    # Apply sample-specific weight/filter
+    if dataset[dataset_name]["sample_weights"]:
+        df = df.Redefine("weight", f"weight*({dataset[dataset_name]['sample_weights']})")
+    if dataset[dataset_name]["sample_filters"]:
+        df = df.Filter(dataset[dataset_name]["sample_filters"])
 
     # Cutflow 1: Initialization
     df = df.Define("cutflow_stage","0")
@@ -216,9 +166,23 @@ def makeRDF(dataset_name, wtagger="Nominal"):
     
 
     results["Cutflow5"] = df.Histo1D(("h_cutflow_5","Cutflow 5",1,-0.5,0.5),"cutflow_stage","weight")
-
+    
     report = df.Report()
     report.Print()
+    
+    results = {} # add for histograms
+    # Histogram for leading lepton pt
+    results["Lepton_pt"] = df.Histo1D(
+        ("h_Lepton_pt", "Leading Lepton p_{T};p_{T} [GeV];Events", 50, 0, 200),
+        "Lepton_pt", "weight"
+    )
+
+    # Histogram for Lhe_mWW (only for MC signal samples)
+    if isMC and isSignal:
+        results["Lhe_mWW"] = df.Histo1D(
+            ("h_Lhe_mWW", "LHE mWW; m_{WW} [GeV];Events", 50, 0, 2000),
+            "Lhe_mWW", "weight"
+        )
  
     return results
 
@@ -227,13 +191,13 @@ parser.add_argument("-w","--wtag", help="WTagger option Nominal, MD", type=str,d
 args = parser.parse_args()
 
 
-histograms = {}
+# histograms = {}
 
 
-#for keys in dataset:
-#histograms["ggH_sonly_off"] = makeRDF(dataset["ggH_sonly_off"],True)
-histograms["ggH_sonly_off"] = makeRDF("ggH_sonly_off",args.wtag)
-#print(histograms)
+# #for keys in dataset:
+# #histograms["ggH_sonly_off"] = makeRDF(dataset["ggH_sonly_off"],True)
+# histograms["ggH_sonly_off"] = makeRDF("ggH_sonly_off",args.wtag)
+# #print(histograms)
 
 #file_path = "my_histograms_ggH_sonly_off_Step_3.pkl"
 
@@ -242,10 +206,28 @@ histograms["ggH_sonly_off"] = makeRDF("ggH_sonly_off",args.wtag)
     # Use pickle.dump() to save the dictionary
 #    pickle.dump(histograms, f)
 
+# output_file = ROOT.TFile("output.root", "RECREATE")
+# histograms["ggH_sonly_off"]["Cutflow1"].Write()
+# histograms["ggH_sonly_off"]["Cutflow2"].Write()
+# histograms["ggH_sonly_off"]["Cutflow3"].Write()
+# histograms["ggH_sonly_off"]["Cutflow4"].Write()
+# histograms["ggH_sonly_off"]["Cutflow5"].Write()
+# output_file.Close()
+
+# Example snippet after makeRDF
+# ...existing code...
+
+# results = makeRDF("ggH_sonly_off", args.wtag)  # Call makeRDF and get results
+
+# output_file = ROOT.TFile("output.root", "RECREATE")
+# for h in results.values():
+#     h.Write()
+# output_file.Close()
+
+# Example main loop
 output_file = ROOT.TFile("output.root", "RECREATE")
-histograms["ggH_sonly_off"]["Cutflow1"].Write()
-histograms["ggH_sonly_off"]["Cutflow2"].Write()
-histograms["ggH_sonly_off"]["Cutflow3"].Write()
-histograms["ggH_sonly_off"]["Cutflow4"].Write()
-histograms["ggH_sonly_off"]["Cutflow5"].Write()
+for sample_name in dataset.keys():
+    results = makeRDF(sample_name)
+    for hname, h in results.items():
+        h.Write(f"{sample_name}_{hname}")
 output_file.Close()
