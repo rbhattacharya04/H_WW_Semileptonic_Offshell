@@ -222,44 +222,38 @@ inline double computePUJetIdSF(const UInt_t& nJet,
     return TMath::Exp(logSum);
 }
 
-
-
-
-// Returns indices of CleanJets not overlapping with the selected FatJet (ΔR < 0.8)
-inline RVec<int> getCleanJetNotOverlapping(
+inline RVec<bool> getCleanJetNotOverlapping(
     float FatJet_eta,
     float FatJet_phi,
     const RVec<Float_t>& CleanJet_eta,
     const RVec<Float_t>& CleanJet_phi
 ) {
-    RVec<int> nonOverlappingJets;
+    RVec<bool> mask(CleanJet_eta.size(), false);
     for (size_t iJet = 0; iJet < CleanJet_eta.size(); ++iJet) {
         float dr = deltaR(FatJet_eta, FatJet_phi, CleanJet_eta[iJet], CleanJet_phi[iJet]);
-        if (dr >= 0.8) nonOverlappingJets.push_back(iJet);
+        mask[iJet] = (dr >= 0.8);
     }
-    return nonOverlappingJets;
+    return mask;
+}
+
+template <typename T>
+RVec<T> filterByMask(const RVec<T>& collection, const RVec<bool>& mask) {
+    RVec<T> filtered;
+    for (size_t i = 0; i < collection.size(); ++i) {
+        if (mask[i]) filtered.push_back(collection[i]);
+    }
+    return filtered;
 }
 
 
-// bVeto_boo [DeepFlavB > 0.2783 medium WP]
-inline bool bVeto_boo(
-    const RVec<Float_t>& CleanJet_pt,
-    const RVec<Float_t>& CleanJet_eta,
-    const RVec<Int_t>& CleanJet_jetIdx,
-    const RVec<Float_t>& Jet_btagDeepFlavB,
-    const RVec<int>& CleanJet_notOverlapping,
-    float bWP = 0.2783
-) {
-    for (auto idx : CleanJet_notOverlapping) {
-        if (CleanJet_pt[idx] > 20 && std::abs(CleanJet_eta[idx]) < 2.5) {
-            int jetIdx = CleanJet_jetIdx[idx];
-            if (jetIdx >= 0 && jetIdx < Jet_btagDeepFlavB.size()) {
-                if (Jet_btagDeepFlavB[jetIdx] > bWP) return false;
-            }
-        }
+inline bool passBJetVeto(const RVec<Float_t>& btag_scores, float bWP = 0.2783) {
+    for (auto score : btag_scores) {
+        if (score > bWP) return false;
     }
-    return true; // No b-tagged jets found
+    return true;
 }
+
+
 
 // Returns the b-veto SF for bVeto_boo
 inline double bVeto_booSF(
@@ -283,27 +277,6 @@ inline double bVeto_booSF(
     return std::exp(logSum);
 }
 
-
-// for addition of bTagSF
-inline bool bReq_boo(
-    const RVec<Float_t>& CleanJet_pt,
-    const RVec<Float_t>& CleanJet_eta,
-    const RVec<Int_t>& CleanJet_jetIdx,
-    const RVec<Float_t>& Jet_btagDeepFlavB,
-    const RVec<int>& CleanJet_notOverlapping,
-    float bWP = 0.2783
-) {
-    for (auto idx : CleanJet_notOverlapping) {
-        if (CleanJet_pt[idx] > 30 && std::abs(CleanJet_eta[idx]) < 2.5) {
-            int jetIdx = CleanJet_jetIdx[idx];
-            if (jetIdx >= 0 && jetIdx < Jet_btagDeepFlavB.size()) {
-                if (Jet_btagDeepFlavB[jetIdx] > bWP) return true;
-            }
-        }
-    }
-    return false;
-}
-
 inline double bReq_booSF(
     const RVec<Float_t>& CleanJet_pt,
     const RVec<Float_t>& CleanJet_eta,
@@ -323,21 +296,4 @@ inline double bReq_booSF(
         }
     }
     return std::exp(logSum);
-}
-
-inline bool boosted_nocut_res(
-    float PuppiMET_pt,
-    int GoodFatJet_idx,
-    const RVec<Float_t>& FatJet_pt,
-    const RVec<Float_t>& FatJet_deepTag_WvsQCD,
-    const RVec<Float_t>& FatJet_eta
-) {
-    if (
-        PuppiMET_pt > 40 &&
-        GoodFatJet_idx >= 0 &&
-        FatJet_pt[GoodFatJet_idx] > 200 &&
-        FatJet_deepTag_WvsQCD[GoodFatJet_idx] > 0.961 &&
-        std::abs(FatJet_eta[GoodFatJet_idx]) < 2.4
-    ) return true;
-    return false;
 }
