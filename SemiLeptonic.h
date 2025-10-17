@@ -201,6 +201,9 @@ int isGoodFatjet_indx(const RVec<Float_t>& FatJet_eta, const RVec<Float_t>& FatJ
   return -1;
 }
 
+
+
+
 inline double computePUJetIdSF(const UInt_t& nJet,
                                const RVec<Int_t>& Jet_jetId,
                                const RVec<Int_t>& Jet_electronIdx1,
@@ -218,4 +221,65 @@ inline double computePUJetIdSF(const UInt_t& nJet,
     }
     return TMath::Exp(logSum);
 }
+
+inline RVec<bool> getCleanJetNotOverlapping(
+    float FatJet_eta,
+    float FatJet_phi,
+    const RVec<Float_t>& CleanJet_eta,
+    const RVec<Float_t>& CleanJet_phi
+) {
+    RVec<bool> mask(CleanJet_eta.size(), false);
+    for (size_t iJet = 0; iJet < CleanJet_eta.size(); ++iJet) {
+        float dr = deltaR(FatJet_eta, FatJet_phi, CleanJet_eta[iJet], CleanJet_phi[iJet]);
+        mask[iJet] = (dr >= 0.8);
+    }
+    return mask;
+}
+
+
+// Returns a bool mask for b-tagged jets using only the bWP
+inline RVec<bool> getBTagMask(
+    const RVec<Float_t>& btag,
+    float btagWP
+) {
+    RVec<bool> mask(btag.size(), false);
+    for (size_t i = 0; i < btag.size(); ++i) {
+        mask[i] = (btag[i] > btagWP);
+    }
+    return mask;
+}
+
+
+
+// Generic filter function
+template <typename T>
+RVec<T> filterByMask(const RVec<T>& collection, const RVec<bool>& mask) {
+    RVec<T> filtered;
+    for (size_t i = 0; i < collection.size(); ++i) {
+        if (mask[i]) filtered.push_back(collection[i]);
+    }
+    return filtered;
+}
+
+
+
+
+// template <typename T>
+// RVec<T> filterByMask(const RVec<T>& collection, const RVec<bool>& mask) {
+//     RVec<T> filtered;
+//     for (size_t i = 0; i < collection.size(); ++i) {
+//         if (mask[i]) filtered.push_back(collection[i]);
+//     }
+//     return filtered;
+// }
+
+
+// inline bool passBJetVeto(const RVec<Float_t>& btag_scores, float bWP = 0.2783) {
+//     for (auto score : btag_scores) {
+//         if (score > bWP) return false;
+//     }
+//     return true;
+// }
+
+
 

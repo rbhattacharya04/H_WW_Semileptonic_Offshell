@@ -74,6 +74,8 @@ def makeRDF(dataset_name, wtagger="Nominal"):
     
     df = df.Define("isVetoLepton","isVetoLepton(nLepton,Lepton_pt,Lepton_isLoose)")
     df = df.Filter("!isVetoLepton", "Veto Lepton Cut")
+
+    df = df.Filter("PuppiMET_pt > 30", "PuppiMET_pt > 30 GeV cut")
    
     results["Cutflow4"] = df.Histo1D(("h_cutflow_4","Cutflow 4",1,-0.5,0.5),"cutflow_stage","weight")
 
@@ -88,6 +90,27 @@ def makeRDF(dataset_name, wtagger="Nominal"):
     df = df.Define("AnaFatJet_eta","FatJet_eta[GoodFatJet_idx]")
     df = df.Define("AnaFatJet_phi", "FatJet_phi[GoodFatJet_idx]")
     df = df.Define("AnaFatJet_jetId","FatJet_jetId[GoodFatJet_idx]")
+
+    df = df.Define("CleanJet_btag", "Take(Jet_btagDeepFlavB, CleanJet_jetIdx)")
+    df = df.Define("CleanJet_notOverlapping", "getCleanJetNotOverlapping(FatJet_eta[GoodFatJet_idx], FatJet_phi[GoodFatJet_idx], CleanJet_eta, CleanJet_phi)")
+    df = df.Define("CleanJet_btag_notOverlap", "CleanJet_btag[CleanJet_notOverlapping]")
+    btagWP = 0.2783 
+    df = df.Define("btaggedJets", f"CleanJet_btag_notOverlap[CleanJet_btag_notOverlap > {btagWP}]")
+    df = df.Define("nonBtaggedJets", f"CleanJet_btag_notOverlap[CleanJet_btag_notOverlap <= {btagWP}]")
+    df = df.Define("passBVeto", "btaggedJets.size() == 0")
+    df = df.Filter("passBVeto")
+    
+    #df = df.Define("bReq_boo", "bReq_boo(CleanJet_pt, CleanJet_eta, CleanJet_jetIdx, Jet_btagDeepFlavB, CleanJet_notOverlapping)")
+    #df = df.Define("bReq_booSF", "bReq_booSF(CleanJet_pt, CleanJet_eta, CleanJet_jetIdx, Jet_btagSF_deepjet_shape, CleanJet_notOverlapping, 30.0)")
+    
+
+
+    # if isMC:
+    #     df = df.Define("bVeto_booSF","bVeto_booSF(CleanJet_pt, CleanJet_eta, CleanJet_jetIdx, Jet_btagSF_deepjet_shape, CleanJet_notOverlapping, 20.0)")
+    #     df = df.Define("btagSF", "boosted_nocut_res * bVeto_booSF * bVeto_boo + bReq_booSF * bReq_boo")
+    #     df = df.Redefine("weight","weight*bVeto_booSF")
+    #     df = df.Redefine("weight","weight*btagSF")
+   
     if wtagger == "Nominal":
         df = df.Define("AnaFatJet_nom_wtag","FatJet_particleNet_WvsQCD[GoodFatJet_idx]")
         if isMC:
@@ -110,7 +133,10 @@ def makeRDF(dataset_name, wtagger="Nominal"):
         if isMC:
             df = df.Define("WTagger_SF","getWTaggerSF(AnaFatJet_pt)")
             df = df.Redefine("weight","weight*WTagger_SF")
-      
+    
+
+    results["Cutflow5"] = df.Histo1D(("h_cutflow_5","Cutflow 5",1,-0.5,0.5),"cutflow_stage","weight")
+
     report = df.Report()
     report.Print()
  
@@ -141,4 +167,5 @@ histograms["ggH_sonly_off"]["Cutflow1"].Write()
 histograms["ggH_sonly_off"]["Cutflow2"].Write()
 histograms["ggH_sonly_off"]["Cutflow3"].Write()
 histograms["ggH_sonly_off"]["Cutflow4"].Write()
+histograms["ggH_sonly_off"]["Cutflow5"].Write()
 output_file.Close()
