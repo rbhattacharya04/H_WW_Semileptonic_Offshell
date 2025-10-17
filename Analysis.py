@@ -93,11 +93,10 @@ def makeRDF(dataset_name, wtagger="Nominal"):
 
     df = df.Define("CleanJet_btag", "Take(Jet_btagDeepFlavB, CleanJet_jetIdx)")
     df = df.Define("CleanJet_notOverlapping", "getCleanJetNotOverlapping(FatJet_eta[GoodFatJet_idx], FatJet_phi[GoodFatJet_idx], CleanJet_eta, CleanJet_phi)")
-    df = df.Define("CleanJet_btag_notOverlap", "filterByMask(CleanJet_btag, CleanJet_notOverlapping)")
-    btagWP = 0.2783  
-    df = df.Define("btagMask", f"getBTagMask(CleanJet_btag_notOverlap, {btagWP})")
-    df = df.Define("btaggedJets", "filterByMask(CleanJet_btag_notOverlap, btagMask)")
-    df = df.Define("nonBtaggedJets", "filterByMask(CleanJet_btag_notOverlap, !btagMask)")
+    df = df.Define("CleanJet_btag_notOverlap", "CleanJet_btag[CleanJet_notOverlapping]")
+    btagWP = 0.2783 
+    df = df.Define("btaggedJets", f"CleanJet_btag_notOverlap[CleanJet_btag_notOverlap > {btagWP}]")
+    df = df.Define("nonBtaggedJets", f"CleanJet_btag_notOverlap[CleanJet_btag_notOverlap <= {btagWP}]")
     df = df.Define("passBVeto", "btaggedJets.size() == 0")
     df = df.Filter("passBVeto")
     
