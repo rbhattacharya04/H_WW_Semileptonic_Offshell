@@ -90,28 +90,27 @@ def makeRDF(dataset_name, wtagger="Nominal"):
     df = df.Define("AnaFatJet_eta","FatJet_eta[GoodFatJet_idx]")
     df = df.Define("AnaFatJet_phi", "FatJet_phi[GoodFatJet_idx]")
     df = df.Define("AnaFatJet_jetId","FatJet_jetId[GoodFatJet_idx]")
-    #df = df.Define("CleanJet_notOverlapping", "getCleanJetNotOverlapping(FatJet_eta[GoodFatJet_idx], FatJet_phi[GoodFatJet_idx], CleanJet_eta, CleanJet_phi)")
+
+    df = df.Define("CleanJet_btag", "Take(Jet_btagDeepFlavB, CleanJet_jetIdx)")
+    df = df.Define("CleanJet_notOverlapping", "getCleanJetNotOverlapping(FatJet_eta[GoodFatJet_idx], FatJet_phi[GoodFatJet_idx], CleanJet_eta, CleanJet_phi)")
+    df = df.Define("CleanJet_btag_notOverlap", "filterByMask(CleanJet_btag, CleanJet_notOverlapping)")
+    btagWP = 0.2783  
+    df = df.Define("btagMask", f"getBTagMask(CleanJet_btag_notOverlap, {btagWP})")
+    df = df.Define("btaggedJets", "filterByMask(CleanJet_btag_notOverlap, btagMask)")
+    df = df.Define("nonBtaggedJets", "filterByMask(CleanJet_btag_notOverlap, !btagMask)")
+    df = df.Define("passBVeto", "btaggedJets.size() == 0")
+    df = df.Filter("passBVeto")
     
-    df = df.Define("CleanJet_notOverlappingMask", "getCleanJetNotOverlappingMask(FatJet_eta[GoodFatJet_idx], FatJet_phi[GoodFatJet_idx], CleanJet_eta, CleanJet_phi)")
-    df = df.Define("CleanJet_pt_notOverlapping", "filterByMask(CleanJet_pt, CleanJet_notOverlappingMask)")
-    df = df.Define("CleanJet_eta_notOverlapping", "filterByMask(CleanJet_eta, CleanJet_notOverlappingMask)")
-    df = df.Define("CleanJet_jetIdx_notOverlapping", "filterByMask(CleanJet_jetIdx, CleanJet_notOverlappingMask)")
-    df = df.Define("CleanJet_bTagScore_notOverlapping", "filterByMask(Jet_btagDeepFlavB, CleanJet_notOverlappingMask)")
-    df = df.Define("bVeto_boo", "passBJetVeto(CleanJet_bTagScore_notOverlapping)")
+    #df = df.Define("bReq_boo", "bReq_boo(CleanJet_pt, CleanJet_eta, CleanJet_jetIdx, Jet_btagDeepFlavB, CleanJet_notOverlapping)")
+    #df = df.Define("bReq_booSF", "bReq_booSF(CleanJet_pt, CleanJet_eta, CleanJet_jetIdx, Jet_btagSF_deepjet_shape, CleanJet_notOverlapping, 30.0)")
     
-    
-    
-    # df = df.Define("bVeto_boo", "bVeto_boo(CleanJet_pt, CleanJet_eta, CleanJet_jetIdx, Jet_btagDeepFlavB, CleanJet_notOverlapping)")
-    # df = df.Filter("bVeto_boo", "bjet veto")
-    # df = df.Define("bReq_boo", "bReq_boo(CleanJet_pt, CleanJet_eta, CleanJet_jetIdx, Jet_btagDeepFlavB, CleanJet_notOverlapping)")
-    # df = df.Define("bReq_booSF", "bReq_booSF(CleanJet_pt, CleanJet_eta, CleanJet_jetIdx, Jet_btagSF_deepjet_shape, CleanJet_notOverlapping, 30.0)")
 
 
-    if isMC:
-        df = df.Define("bVeto_booSF","bVeto_booSF(CleanJet_pt, CleanJet_eta, CleanJet_jetIdx, Jet_btagSF_deepjet_shape, CleanJet_notOverlapping, 20.0)")
-        df = df.Define("btagSF", "boosted_nocut_res * bVeto_booSF * bVeto_boo + bReq_booSF * bReq_boo")
-        df = df.Redefine("weight","weight*bVeto_booSF")
-        df = df.Redefine("weight","weight*btagSF")
+    # if isMC:
+    #     df = df.Define("bVeto_booSF","bVeto_booSF(CleanJet_pt, CleanJet_eta, CleanJet_jetIdx, Jet_btagSF_deepjet_shape, CleanJet_notOverlapping, 20.0)")
+    #     df = df.Define("btagSF", "boosted_nocut_res * bVeto_booSF * bVeto_boo + bReq_booSF * bReq_boo")
+    #     df = df.Redefine("weight","weight*bVeto_booSF")
+    #     df = df.Redefine("weight","weight*btagSF")
    
     if wtagger == "Nominal":
         df = df.Define("AnaFatJet_nom_wtag","FatJet_particleNet_WvsQCD[GoodFatJet_idx]")
