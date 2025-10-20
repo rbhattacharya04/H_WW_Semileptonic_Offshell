@@ -14,9 +14,17 @@ def makeRDF(dataset_name, wtagger="Nominal"):
     isMC = dataset[dataset_name]["isMC"]
     isSignal = dataset[dataset_name]["isSignal"]
     isOffshell = dataset[dataset_name]["isOffshell"]
+    
+    df_run = ROOT.RDataFrame("Runs", files)
+    sum_result = df_run.Sum("genEventSumw")
+    genEventSumw = sum_result.GetValue()
+    print(f"genEventSumw = {genEventSumw}")
+ 
     df = ROOT.RDataFrame("Events", files)
     #df = df.Range(1000)
-    ROOT.RDF.Experimental.AddProgressBar(df)
+    #ROOT.RDF.Experimental.AddProgressBar(df)
+    #XS_Weight_cal = (59.7*1000*0.775)/genEventSumw
+    XS_Weight_cal = (59.7*1000*0.11)/genEventSumw
     
     df = df.Define("weight","1")
     
@@ -29,14 +37,15 @@ def makeRDF(dataset_name, wtagger="Nominal"):
                 df = df.Filter("Lhe_mWW < 160")
         #comment out the following two lines as I have defined weight as above
     
-        df = df.Redefine("weight","weight*XSWeight*METFilter_MC*puWeight*EMTFbug_veto") #XSWeight is genweight*baseW https://github.com/sv3048/LatinoAnalysis/blob/SemilepOFFSHELL/NanoGardener/python/data/formulasToAdd_MCnoSF_Full2018v9.py#L29-L31
+        #df = df.Redefine("weight",f"weight*genWeight*{XS_Weight_cal}*METFilter_MC*puWeight*EMTFbug_veto") #XSWeight is genweight*baseW https://github.com/sv3048/LatinoAnalysis/blob/SemilepOFFSHELL/NanoGardener/python/data/formulasToAdd_MCnoSF_Full2018v9.py#L29-L31
+        df = df.Redefine("weight",f"weight*genWeight*{XS_Weight_cal}") #XSWeight is genweight*baseW https://github.com/sv3048/LatinoAnalysis/blob/SemilepOFFSHELL/NanoGardener/python/data/formulasToAdd_MCnoSF_Full2018v9.py#L29-L31
     
     df = df.Define("cutflow_stage","0")
-    results["Cutflow1"] = df.Histo1D(("h_cutflow_1","Cutflow 1",1,-0.5,0.5),"cutflow_stage","weight")
+    results["Cutflow_Start"] = df.Histo1D(("h_cutflow_Start","Cutflow Start",1,-0.5,0.5),"cutflow_stage","weight")
 
     # Using direct HLT filter
     df = df.Filter("HLT_IsoMu24 || HLT_Ele32_WPTight_Gsf","HLT Cut")
-    results["Cutflow2"] = df.Histo1D(("h_cutflow_2","Cutflow 2",1,-0.5,0.5),"cutflow_stage","weight")
+    results["Cutflow_Trigger"] = df.Histo1D(("h_cutflow_Trigger","Cutflow Trigger",1,-0.5,0.5),"cutflow_stage","weight")
 
      
     ele_tight = "(abs(Lepton_pdgId) == 11 && Lepton_isTightElectron_mvaFall17V2Iso_WP90)"
@@ -54,7 +63,8 @@ def makeRDF(dataset_name, wtagger="Nominal"):
     
     if isMC:
         df = df.Define("Leading_Lepton_promptgenmatched","Lepton_promptgenmatched[0]")
-        df = df.Filter("Leading_Lepton_promptgenmatched", "Gen Matching of the leading Lepton")    
+        df = df.Filter("Leading_Lepton_promptgenmatched", "Gen Matching of the leading Lepton")
+        results["Cutflow_LeptonGenMatching"] = df.Histo1D(("h_cutflow_LeptonGenMatching","Cutflow LeptonGenMatching",1,-0.5,0.5),"cutflow_stage","weight")
         df = df.Define("Lepton_ID_SF","getLeptonIdSF(Leading_Lepton_pdgId,Leading_Lepton_isTight,Lepton_tightElectron_mvaFall17V2Iso_WP90_TotSF,Lepton_tightMuon_cut_Tight_HWWW_TotSF)")
         df = df.Redefine("weight","weight*Lepton_ID_SF")
         
@@ -70,24 +80,54 @@ def makeRDF(dataset_name, wtagger="Nominal"):
     df = df.Filter("isAnalysisLepton", "Analysis Lepton Selection")
 
 
-    results["Cutflow3"] = df.Histo1D(("h_cutflow_3","Cutflow 3",1,-0.5,0.5),"cutflow_stage","weight")
+    results["Cutflow_AnaLepton"] = df.Histo1D(("h_cutflow_AnaLepton","Cutflow AnaLepton",1,-0.5,0.5),"cutflow_stage","weight")
     
     df = df.Define("isVetoLepton","isVetoLepton(nLepton,Lepton_pt,Lepton_isLoose)")
     df = df.Filter("!isVetoLepton", "Veto Lepton Cut")
    
-    results["Cutflow4"] = df.Histo1D(("h_cutflow_4","Cutflow 4",1,-0.5,0.5),"cutflow_stage","weight")
+    results["Cutflow_Veto_Lepton"] = df.Histo1D(("h_cutflow_Veto_Lepton","Cutflow Veto Lepton",1,-0.5,0.5),"cutflow_stage","weight")
+
+    df = df.Filter("PuppiMET_pt > 30", "PuppiMET_pt > 30 GeV cut")
+    results["Cutflow_MET"] = df.Histo1D(("h_cutflow_MET","Cutflow MET",1,-0.5,0.5),"cutflow_stage","weight")
+
+
+    results["nCleanedFatJet"] = df.Histo1D(("nCleanedFatJet","nCleanedFatJet",6,-0.5,5.5),"nCleanFatJet")
 
     # Jet Selection
     df = df.Filter("nFatJet>=1","At Least 1 Fat Jet")
+    results["Cutflow_nFatJet"] = df.Histo1D(("h_cutflow_nFatJet","Cutflow nFatjet",1,-0.5,0.5),"cutflow_stage","weight")
     if isMC:
         df = df.Define("JetPUIDSF","computePUJetIdSF(nJet,Jet_jetId,Jet_electronIdx1,Jet_muonIdx1,Jet_PUIDSF_loose,Leading_Lepton_electronIdx,Leading_Lepton_muonIdx)")
         df = df.Redefine("weight","weight*JetPUIDSF")
+    
     df = df.Define("GoodFatJet_idx","isGoodFatjet_indx(FatJet_eta,FatJet_phi,FatJet_jetId,Lepton_eta,Lepton_phi)")
     df = df.Filter("GoodFatJet_idx != -1", "Good Fat Jet cut")
+    results["Cutflow_JetCleaning"] = df.Histo1D(("h_cutflow_JetCleaning","Cutflow JetCleaning",1,-0.5,0.5),"cutflow_stage","weight")
     df = df.Define("AnaFatJet_pt","FatJet_pt[GoodFatJet_idx]")
     df = df.Define("AnaFatJet_eta","FatJet_eta[GoodFatJet_idx]")
     df = df.Define("AnaFatJet_phi", "FatJet_phi[GoodFatJet_idx]")
+    df = df.Define("AnaFatJet_mass", "FatJet_mass[GoodFatJet_idx]")
     df = df.Define("AnaFatJet_jetId","FatJet_jetId[GoodFatJet_idx]")
+
+    
+    df = df.Define("CleanJet_btag", "Take(Jet_btagDeepFlavB, CleanJet_jetIdx)")
+    if isMC:
+        df = df.Define("CleanJet_btag_SF","Take(Jet_btagSF_deepjet_shape,CleanJet_jetIdx)")
+    
+    df = df.Define("CleanJet_notOverlapping", "getCleanJetNotOverlapping(AnaFatJet_eta, AnaFatJet_phi, CleanJet_eta, CleanJet_phi)")
+
+    df = df.Define("CleanJet_btag_notOverlap","CleanJet_btag[CleanJet_notOverlapping]")
+    
+    if isMC:
+        df = df.Define("CleanJet_btagSF_notOverlap","CleanJet_btag_SF[CleanJet_notOverlapping]")
+        df = df.Define("bTagSF","getBTagSF(CleanJet_btagSF_notOverlap)")
+        df = df.Redefine("weight","weight*bTagSF")
+
+    btagWP = 0.2783
+    df = df.Define("bTagged_jets",f"CleanJet_btag_notOverlap[CleanJet_btag_notOverlap > {btagWP}]")
+    df = df.Filter("bTagged_jets.size() == 0", "bVeto cut")
+    results["Cutflow_bVeto"] = df.Histo1D(("h_cutflow_bVeto","Cutflow bVeto",1,-0.5,0.5),"cutflow_stage","weight")
+   
     if wtagger == "Nominal":
         df = df.Define("AnaFatJet_nom_wtag","FatJet_particleNet_WvsQCD[GoodFatJet_idx]")
         if isMC:
@@ -99,7 +139,15 @@ def makeRDF(dataset_name, wtagger="Nominal"):
             if hasattr(ROOT, "initializeWTaggerSF"):
                 ROOT.initializeWTaggerSF("W_MD_Run2_SF.csv")
     #df = df.Filter("AnaFatJet_jetId == 2", "Tight Jet Id cut")
+    results["Jet_pt"] = df.Histo1D(("h_Jet_pt","Jet pt",400,100,500),"AnaFatJet_pt","weight") 
     df = df.Filter("AnaFatJet_pt>200","Jet pT cut")
+    results["Cutflow_Jet_Pt"] = df.Histo1D(("h_cutflow_Jet_Pt","Cutflow Jet Pt",1,-0.5,0.5),"cutflow_stage","weight")
+    
+    if wtagger == "Nominal":
+        results["Jet_Nominal_WTagger"] = df.Histo1D(("h_Nominal_WTagger", "WTagger Nominal", 10, 0, 1), "AnaFatJet_nom_wtag","weight")
+    elif wtagger == "MD":
+        results["Jet_MD_WTagger"] = df.Histo1D(("h_MD_WTagger", "WTagger MD", 10, 0, 1), "AnaFatJet_md_wtag","weight") 
+    
     if wtagger == "Nominal":
         df = df.Filter("AnaFatJet_nom_wtag > 0.94","Wtagger Nominal 0p5 cut")
         if isMC:
@@ -110,23 +158,67 @@ def makeRDF(dataset_name, wtagger="Nominal"):
         if isMC:
             df = df.Define("WTagger_SF","getWTaggerSF(AnaFatJet_pt)")
             df = df.Redefine("weight","weight*WTagger_SF")
+    results["Cutflow_WTagger"] = df.Histo1D(("h_cutflow_WTagger","Cutflow WTagger",1,-0.5,0.5),"cutflow_stage","weight")
+    results["Lepton_pt_selection"] = df.Histo1D(("h_Lepton_pt_selection","Lepton pt",100,0,100),"Leading_Lepton_pt","weight")
+    results["Lepton_eta_selection"] = df.Histo1D(("h_Lepton_eta_selection", "Lepton eta", 12, -2.4, 2.4), "Leading_Lepton_eta", "weight")
+    results["Lepton_phi_selection"] = df.Histo1D(("h_Lepton_phi_selection", "Lepton phi", 32, -3.2, 3.2), "Leading_Lepton_phi", "weight")    
+
+    results["Jet_pt_selection"] = df.Histo1D(("h_Jet_pt_selection","Jet pt",400,100,500),"AnaFatJet_pt","weight")
+    results["Jet_eta_selection"] = df.Histo1D(("h_Jet_eta_selection", "Jet eta", 12, -2.4, 2.4), "AnaFatJet_eta", "weight")
+    results["Jet_phi_selection"] = df.Histo1D(("h_Jet_phi_selection", "Jet phi", 32, -3.2, 3.2), "AnaFatJet_phi", "weight")    
+    if wtagger == "Nominal":
+        results["Jet_Nominal_WTagger_selection"] = df.Histo1D(("h_Nominal_WTagger_selection", "WTagger Nominal", 10, 0, 1), "AnaFatJet_nom_wtag","weight")
+    elif wtagger == "MD":
+        results["Jet_MD_WTagger_selection"] = df.Histo1D(("h_MD_WTagger_selection", "WTagger MD", 10, 0, 1), "AnaFatJet_md_wtag","weight")
+    
+    df = df.Define("H_vis_m","getHiggsCandidate(Leading_Lepton_pt,Leading_Lepton_eta,Leading_Lepton_phi,AnaFatJet_pt,AnaFatJet_eta,AnaFatJet_phi,AnaFatJet_mass,0)") 
+    df = df.Define("H_vis_pt","getHiggsCandidate(Leading_Lepton_pt,Leading_Lepton_eta,Leading_Lepton_phi,AnaFatJet_pt,AnaFatJet_eta,AnaFatJet_phi,AnaFatJet_mass,1)") 
+    df = df.Define("H_vis_eta","getHiggsCandidate(Leading_Lepton_pt,Leading_Lepton_eta,Leading_Lepton_phi,AnaFatJet_pt,AnaFatJet_eta,AnaFatJet_phi,AnaFatJet_mass,2)") 
+    df = df.Define("H_vis_phi","getHiggsCandidate(Leading_Lepton_pt,Leading_Lepton_eta,Leading_Lepton_phi,AnaFatJet_pt,AnaFatJet_eta,AnaFatJet_phi,AnaFatJet_mass,3)") 
+    results["Higgs_pt"] = df.Histo1D(("h_Higgs_pt","Higgs pt",100,0,1000),"H_vis_pt","weight")
+    results["Higgs_eta"] = df.Histo1D(("h_Higgs_eta", "Higgs eta", 12, -2.4, 2.4), "H_vis_eta", "weight")
+    results["Higgs_phi"] = df.Histo1D(("h_Higgs_phi", "Higgs phi", 32, -3.2, 3.2), "H_vis_phi", "weight")
+    results["Higgs_mass"] = df.Histo1D(("h_Higgs_mass", "Higgs mass", 100, 0, 1000), "H_vis_m", "weight")    
+    
       
     report = df.Report()
     report.Print()
+
+    
  
     return results
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-w","--wtag", help="WTagger option Nominal, MD", type=str,default = "Nominal")
+parser.add_argument("-r","--run", help="run option", choices=["sig", "sig+sbi", "MC", "bkg", "data"], type=str,default = "sig")
 args = parser.parse_args()
 
 
 histograms = {}
 
+if args.run == "MC":
+    del dataset["data"]
+elif args.run == "bkg":
+    del dataset["data"]
+    del dataset["ggH_sand_off"]
+    del dataset["ggH_sonly_off"]
 
-#for keys in dataset:
-#histograms["ggH_sonly_off"] = makeRDF(dataset["ggH_sonly_off"],True)
-histograms["ggH_sonly_off"] = makeRDF("ggH_sonly_off",args.wtag)
+print(f"{args.run}")
+if args.run == "data":
+    print("Wrong1")
+#    histograms["data"] = makeRDF("data",args.wtag)
+elif args.run == "sig+sbi":
+    print("Wrong2")
+#    histograms["ggH_sonly_off"] = makeRDF("ggH_sonly_off",args.wtag)
+#    histograms["ggH_sand_off"] = makeRDF("ggH_sand_off",args.wtag)
+elif args.run == "sig":
+    print("Wrong3")
+    histograms["ggH_sonly_off"] = makeRDF("ggH_sonly_off",args.wtag)
+else:
+    print("Right")
+    for keys in dataset:
+        print(f"Running for {keys}")
+        histograms[keys] = makeRDF(keys,args.wtag)
 #print(histograms)
 
 #file_path = "my_histograms_ggH_sonly_off_Step_3.pkl"
@@ -137,8 +229,10 @@ histograms["ggH_sonly_off"] = makeRDF("ggH_sonly_off",args.wtag)
 #    pickle.dump(histograms, f)
 
 output_file = ROOT.TFile("output.root", "RECREATE")
-histograms["ggH_sonly_off"]["Cutflow1"].Write()
-histograms["ggH_sonly_off"]["Cutflow2"].Write()
-histograms["ggH_sonly_off"]["Cutflow3"].Write()
-histograms["ggH_sonly_off"]["Cutflow4"].Write()
+for key1 in histograms:
+    new_directory = output_file.mkdir(key1)
+    new_directory.cd()
+    for key2 in histograms[key1]:
+        histograms[key1][key2].Write()
+    output_file.cd()
 output_file.Close()

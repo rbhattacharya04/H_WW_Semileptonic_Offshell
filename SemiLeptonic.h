@@ -201,6 +201,28 @@ int isGoodFatjet_indx(const RVec<Float_t>& FatJet_eta, const RVec<Float_t>& FatJ
   return -1;
 }
 
+inline RVec<bool> getCleanJetNotOverlapping(
+    float FatJet_eta,
+    float FatJet_phi,
+    const RVec<Float_t>& CleanJet_eta,
+    const RVec<Float_t>& CleanJet_phi
+) {
+    RVec<bool> mask(CleanJet_eta.size(), false);
+    for (size_t iJet = 0; iJet < CleanJet_eta.size(); ++iJet) {
+        float dr = deltaR(FatJet_eta, FatJet_phi, CleanJet_eta[iJet], CleanJet_phi[iJet]);
+        mask[iJet] = (dr >= 0.8);
+    }
+    return mask;
+}
+
+inline double getBTagSF(const RVec<Float_t>& CleanJet_btagSF_notOverlap){
+  double sf = 1.0;
+  for (int i=0; i<CleanJet_btagSF_notOverlap.size(); i++){
+    sf *= CleanJet_btagSF_notOverlap.at(i);
+  }
+  return sf;
+}
+
 inline double computePUJetIdSF(const UInt_t& nJet,
                                const RVec<Int_t>& Jet_jetId,
                                const RVec<Int_t>& Jet_electronIdx1,
@@ -219,3 +241,14 @@ inline double computePUJetIdSF(const UInt_t& nJet,
     return TMath::Exp(logSum);
 }
 
+inline double getHiggsCandidate (const Float_t& Lepton_pt, const Float_t& Lepton_eta, const Float_t& Lepton_phi,
+				const Float_t& Jet_pt, const Float_t& Jet_eta, const Float_t& Jet_phi, const Float_t& Jet_mass, int var){
+  ROOT::Math::PtEtaPhiMVector Lepton = ROOT::Math::PtEtaPhiMVector(Lepton_pt, Lepton_eta,
+                                      Lepton_phi, 0);
+  ROOT::Math::PtEtaPhiMVector Jet = ROOT::Math::PtEtaPhiMVector(Jet_pt, Jet_eta, Jet_phi, Jet_mass);
+  ROOT::Math::PtEtaPhiMVector H_vis = Lepton + Jet;
+  if(var == 0 ) return H_vis.M();
+  if(var == 1) return H_vis.Pt();
+  if(var == 2) return H_vis.Eta();
+  if(var == 3) return H_vis.Phi();
+}
