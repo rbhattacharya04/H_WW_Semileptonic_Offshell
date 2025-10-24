@@ -10,56 +10,47 @@ ROOT.gInterpreter.Declare('#include "SemiLeptonic.h"')
 def makeRDF(dataset_name, wtagger="Nominal"):
     results = {}
     # Get files and isMC from dataset
+    #sample_dict = dataset[dataset_name]
     files = dataset[dataset_name]["files"]
     isMC = dataset[dataset_name]["isMC"]
     isSignal = dataset[dataset_name]["isSignal"]
     isOffshell = dataset[dataset_name]["isOffshell"]
+    
     df = ROOT.RDataFrame("Events", files)
     #df = df.Range(1000)
     ROOT.RDF.Experimental.AddProgressBar(df)
-    
+    if isSignal:
+        #XS_Weight_cal = (1000*0.4357)/genEventSumw
+        XS_Weight_cal = "XSWeight"
     df = df.Define("weight","1")
     # Define only needed variables for weights/filters
     
+
  
     if isMC:
-        # Signal sample: LHE mWW and offshell/signal selection
-        df = df.Define("DYPhotonWeight", "float(DYPhotonFilter(nPhotonGen, PhotonGen_pt, PhotonGen_eta, PhotonGen_isPrompt, nLeptonGen, LeptonGen_pt, LeptonGen_isPrompt))")
-        df = df.Define("WWGenWeight", "float(!((mjjGen_max > 150) && GenLHE))")
-        df = df.Define("VgWeight", "float(Gen_ZGstar_mass <= 0)")
+        df = df.Define("passDYPhotonFilter", "DYPhotonFilter(nPhotonGen, PhotonGen_pt, PhotonGen_eta, PhotonGen_isPrompt, nLeptonGen, LeptonGen_pt, LeptonGen_isPrompt)" )
+        df = df.Define("passWjetsPhotonFilter", "WjetsPhotonFilter(nPhotonGen, PhotonGen_pt, PhotonGen_eta, PhotonGen_isPrompt)")
+        df = df.Define("mjjGenmax","genMjjmax(nGenJet, GenJet_pt, GenJet_eta, GenJet_phi, GenJet_mass, nGenDressedLepton, GenDressedLepton_pt, GenDressedLepton_eta, GenDressedLepton_phi)")
         df = df.Define("gstarLowWeight", "0.94 * float(gstarLow(Gen_ZGstar_mass))")
         df = df.Define("gstarHighWeight", "1.14 * float(gstarHigh(Gen_ZGstar_mass))")
-        df = df.Define("passDYPhotonFilter", "DYPhotonFilter(nPhotonGen, PhotonGen_pt, PhotonGen_eta, PhotonGen_isPrompt, nLeptonGen, LeptonGen_pt, LeptonGen_isPrompt)")
-        df = df.Define("passWjetsPhotonFilter", "WjetsPhotonFilter(nPhotonGen, PhotonGen_pt, PhotonGen_eta, PhotonGen_isPrompt)")
-        df = df.Define("TopWeight",
-            'float(strstr(inputfile, "TTTo2L2Nu")) * Top_pTrw(topGenPtOTF, antitopGenPtOTF) + '
-            'float(strstr(inputfile, "TTToSemiLeptonic")) * Top_pTrw(topGenPtOTF, antitopGenPtOTF) * 3 + '
-            'float(strstr(inputfile, "ST_t-channel_top")) * (100. / 32.4) + '
-            'float(strstr(inputfile, "ST_t-channel_antitop")) * (100. / 32.4) + '
-            'float(!(strstr(inputfile, "TTTo2L2Nu") || strstr(inputfile, "TTToSemiLeptonic") || strstr(inputfile, "ST_t-channel_top") || strstr(inputfile, "ST_t-channel_antitop"))) * 1.0'
-        )
-        df = df.Define("WjetsHTWeight",
-            'float(strstr(inputfile, "WJetsToLNu-LO")) * float(LHE_HT < 70) + '
-            'float(strstr(inputfile, "WJetsToLNu_HT70To100")) * 1.21 * 0.95148 + '
-            'float(strstr(inputfile, "WJetsToLNu_HT100To200")) * 0.9471 + '
-            'float(strstr(inputfile, "WJetsToLNu_HT200To400")) * 0.9515 + '
-            'float(strstr(inputfile, "WJetsToLNu_HT400To600")) * 0.9581 + '
-            'float(strstr(inputfile, "WJetsToLNu_HT600To800")) * 1.0582 + '
-            'float(strstr(inputfile, "WJetsToLNu_HT800To1200")) * 1.1285 + '
-            'float(strstr(inputfile, "WJetsToLNu_HT1200To2500")) * 1.3268 + '
-            'float(strstr(inputfile, "WJetsToLNu_HT2500ToInf")) * 2.7948'
-        )
-
+        df = df.Define("VgWeight", "gstarLowWeight + gstarHighWeight")
+       
+       
         if isSignal:
             df = df.Define("Lhe_mWW", "computeMWW(nLHEPart, LHEPart_pt, LHEPart_eta, LHEPart_phi, LHEPart_mass, LHEPart_pdgId, LHEPart_status)")
             if isOffshell:
                 df = df.Filter("Lhe_mWW > 160")
             else:
                 df = df.Filter("Lhe_mWW < 160")
+        if isSignal:
+           #df = df.Redefine("weight",f"weight*genWeight*{XS_Weight_cal}*METFilter_MC*puWeight*EMTFbug_veto") #XSWeight is genweight*baseW https://github.com/sv3048/LatinoAnalysis/blob/SemilepOFFSHEL    L/NanoGardener/python/data/formulasToAdd_MCnoSF_Full2018v9.py#L29-L31
+           df = df.Redefine("weight",f"weight*genWeight*{XS_Weight_cal}*METFilter_MC*puWeight*EMTFbug_veto") #XSWeight is genweight*baseW https://github.com/sv3048/LatinoAnalysis/blob/SemilepOFFSHELL    /NanoGardener/python/data/formulasToAdd_MCnoSF_Full2018v9.py#L29-L31
+        else:
+            df = df.Redefine("weight","weight*XSWeight*METFilter_MC*puWeight*EMTFbug_veto")
 
-        # MC weights and corrections
-        df = df.Redefine("weight","weight*XSWeight*METFilter_MC*puWeight*EMTFbug_veto")
-    ## CHECK ?? 
+        # # MC weights and corrections
+        # df = df.Redefine("weight","weight*XSWeight*METFilter_MC*puWeight*EMTFbug_veto")
+    
     # Apply sample-specific weight/filter
     if dataset[dataset_name]["sample_weights"]:
         df = df.Redefine("weight", f"weight*({dataset[dataset_name]['sample_weights']})")
@@ -170,19 +161,7 @@ def makeRDF(dataset_name, wtagger="Nominal"):
     report = df.Report()
     report.Print()
     
-    results = {} # add for histograms
-    # Histogram for leading lepton pt
-    results["Lepton_pt"] = df.Histo1D(
-        ("h_Lepton_pt", "Leading Lepton p_{T};p_{T} [GeV];Events", 50, 0, 200),
-        "Lepton_pt", "weight"
-    )
 
-    # Histogram for Lhe_mWW (only for MC signal samples)
-    if isMC and isSignal:
-        results["Lhe_mWW"] = df.Histo1D(
-            ("h_Lhe_mWW", "LHE mWW; m_{WW} [GeV];Events", 50, 0, 2000),
-            "Lhe_mWW", "weight"
-        )
  
     return results
 
@@ -191,20 +170,13 @@ parser.add_argument("-w","--wtag", help="WTagger option Nominal, MD", type=str,d
 args = parser.parse_args()
 
 
-# histograms = {}
+histograms = {}
+#for keys in dataset:
+#histograms["ggH_sonly_off"] = makeRDF(dataset["ggH_sonly_off"],True)
+histograms["ggH_sonly_off"] = makeRDF("ggH_sonly_off",args.wtag)
+#print(histograms)
 
-
-# #for keys in dataset:
-# #histograms["ggH_sonly_off"] = makeRDF(dataset["ggH_sonly_off"],True)
-# histograms["ggH_sonly_off"] = makeRDF("ggH_sonly_off",args.wtag)
-# #print(histograms)
-
-#file_path = "my_histograms_ggH_sonly_off_Step_3.pkl"
-
-#print(f"Saving dictionary of histograms to {file_path}")
-#with open(file_path, "wb") as f:
-    # Use pickle.dump() to save the dictionary
-#    pickle.dump(histograms, f)
+#
 
 # output_file = ROOT.TFile("output.root", "RECREATE")
 # histograms["ggH_sonly_off"]["Cutflow1"].Write()
@@ -225,9 +197,15 @@ args = parser.parse_args()
 # output_file.Close()
 
 # Example main loop
+
 output_file = ROOT.TFile("output.root", "RECREATE")
-for sample_name in dataset.keys():
-    results = makeRDF(sample_name)
-    for hname, h in results.items():
-        h.Write(f"{sample_name}_{hname}")
+histograms["ggH_sonly_off"]["Cutflow1"].Write()
+histograms["ggH_sonly_off"]["Cutflow2"].Write()
+histograms["ggH_sonly_off"]["Cutflow3"].Write()
+histograms["ggH_sonly_off"]["Cutflow4"].Write()
+histograms["ggH_sonly_off"]["Cutflow5"].Write()
 output_file.Close()
+
+
+
+

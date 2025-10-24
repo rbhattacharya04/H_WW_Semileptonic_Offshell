@@ -384,9 +384,6 @@ inline float genMjjmax(const UInt_t& nGenJet,
     return mjjmax;
 }
 
-// df = df.Define("genMjjmax", "genMjjmax(nGenJet, GenJet_pt, GenJet_eta, GenJet_phi, GenJet_mass, nGenDressedLepton, GenDressedLepton_pt, GenDressedLepton_eta, GenDressedLepton_phi)")
-
-
 // Returns true if Gen_ZGstar_mass > 0 and < 4 (gstarLow)
 inline bool gstarLow(float Gen_ZGstar_mass) {
     return (Gen_ZGstar_mass > 0. && Gen_ZGstar_mass < 4.);
@@ -397,10 +394,8 @@ inline bool gstarHigh(float Gen_ZGstar_mass) {
     return (Gen_ZGstar_mass < 0. || Gen_ZGstar_mass > 4.);
 }
 
-//df = df.Define("isGstarLow", "gstarLow(Gen_ZGstar_mass)")
-//df = df.Define("isGstarHigh", "gstarHigh(Gen_ZGstar_mass)")
 
-// Top pT reweighting function (Top PAG)
+// Top pT reweighting function
 inline float Top_pTrw(float topGenPtOTF, float antitopGenPtOTF) {
     if (topGenPtOTF * antitopGenPtOTF > 0.) {
         float w1 = 0.103 * std::exp(-0.0118 * topGenPtOTF) - 0.000134 * topGenPtOTF + 0.973;
@@ -433,8 +428,6 @@ inline bool DYPhotonFilter(const UInt_t& nPhotonGen,
     return !(nPromptPhoton > 0 && nPromptLepton >= 2);
 }
 
-// df = df.Define("passDYPhotonFilter", "DYPhotonFilter(nPhotonGen, PhotonGen_pt, PhotonGen_eta, PhotonGen_isPrompt, nLeptonGen, LeptonGen_pt, LeptonGen_isPrompt)")
-// df = df.Filter("passDYPhotonFilter")
 
 // Wjets photon filter: returns true if there are NO prompt photons with pt > 10 and |eta| < 2.5
 inline bool WjetsPhotonFilter(const UInt_t& nPhotonGen,
@@ -448,5 +441,3 @@ inline bool WjetsPhotonFilter(const UInt_t& nPhotonGen,
     return true; // Event passes filter if no such photon exists
 }
 
-// df = df.Define("passWjetsPhotonFilter", "WjetsPhotonFilter(nPhotonGen, PhotonGen_pt, PhotonGen_eta, PhotonGen_isPrompt)")
-// df = df.Filter("passWjetsPhotonFilter")
