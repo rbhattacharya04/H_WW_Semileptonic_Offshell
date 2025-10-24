@@ -35,7 +35,7 @@ def makeRDF(dataset_name, wtagger="Nominal"):
         df = df.Define("gstarLowWeight", "0.94 * float(gstarLow(Gen_ZGstar_mass))")
         df = df.Define("gstarHighWeight", "1.14 * float(gstarHigh(Gen_ZGstar_mass))")
         df = df.Define("VgWeight", "gstarLowWeight + gstarHighWeight")
-       
+        df = df.Define("GenLHE", "GenLHE(LHEPart_pdgId)")
         if isSignal:
             df = df.Define("Lhe_mWW", "computeMWW(nLHEPart, LHEPart_pt, LHEPart_eta, LHEPart_phi, LHEPart_mass, LHEPart_pdgId, LHEPart_status)")
             if isOffshell:
@@ -175,7 +175,7 @@ histograms = {}
 #histograms["ggH_sonly_off"] = makeRDF(dataset["ggH_sonly_off"],True)
 #histograms["DY_else"] = makeRDF("DY_else",args.wtag)
 #histograms["DY_else"] = makeRDF("DY_else",args.wtag)
-histograms["WGToLNuG"] = makeRDF("WGToLNuG",args.wtag)
+histograms["WW"] = makeRDF("WW",args.wtag)
 
 
 #
@@ -201,11 +201,11 @@ histograms["WGToLNuG"] = makeRDF("WGToLNuG",args.wtag)
 # Example main loop
 
 output_file = ROOT.TFile("output.root", "RECREATE")
-histograms["WGToLNuG"]["Cutflow1"].Write()
-histograms["WGToLNuG"]["Cutflow2"].Write()
-histograms["WGToLNuG"]["Cutflow3"].Write()
-histograms["WGToLNuG"]["Cutflow4"].Write()
-histograms["WGToLNuG"]["Cutflow5"].Write()
+histograms["WW"]["Cutflow1"].Write()
+histograms["WW"]["Cutflow2"].Write()
+histograms["WW"]["Cutflow3"].Write()
+histograms["WW"]["Cutflow4"].Write()
+histograms["WW"]["Cutflow5"].Write()
 output_file.Close()
 
 

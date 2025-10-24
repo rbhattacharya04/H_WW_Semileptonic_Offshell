@@ -450,3 +450,11 @@ inline float Top_pTrw(const ROOT::VecOps::RVec<int>& GenPart_pdgId,
         return 1.0;
     }
 }
+
+inline int GenLHE(const ROOT::VecOps::RVec<int>& LHEPart_pdgId) {
+    int sum = 0;
+    for (auto pdgId : LHEPart_pdgId) {
+        if (pdgId == 21) sum++;
+    }
+    return sum == 0;
+}

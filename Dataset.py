@@ -187,7 +187,7 @@ dataset = {
         "isMC": True,
         "isSignal": False,
         "isOffshell": False,
-        "sample_weights": "(!((mjjGen_max > 150) * GenLHE))", #fix it later
+        "sample_weights": "(!((mjjGenmax > 150) * GenLHE))", #fix it later
         "sample_filters": None
     },
     "ggH_bonly_on": {
