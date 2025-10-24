@@ -187,7 +187,7 @@ dataset = {
         "isMC": True,
         "isSignal": False,
         "isOffshell": False,
-        "sample_weights": "WWGenWeight", #fix it later
+        "sample_weights": "(!((mjjGen_max > 150) * GenLHE))", #fix it later
         "sample_filters": None
     },
     "ggH_bonly_on": {
@@ -400,7 +400,7 @@ dataset = {
         "isSignal": True,
         "isOffshell": False,
         "sample_weights": None,
-        "sample_filters": None
+        "sample_filters": "Lhe_mWW < 160"
     },
     "ggH_sonly_off": {
         "files": list_files_in_folder(mc_path, "GluGluToWWToQQ_Sig_private"),
@@ -408,7 +408,7 @@ dataset = {
         "isSignal": True,
         "isOffshell": True,
         "sample_weights": None,
-        "sample_filters": None
+        "sample_filters": "Lhe_mWW > 160"
     },
     "ggH_sand_off": {
         "files": list_files_in_folder(mc_path, "GluGluToWWToQQ_SBI_private"),
@@ -416,7 +416,7 @@ dataset = {
         "isSignal": True,
         "isOffshell": True,
         "sample_weights": None,
-        "sample_filters": None
+        "sample_filters": "Lhe_mWW > 160"
     },
     "ggH_sand_on": {
         "files": list_files_in_folder(mc_path, "GluGluToWWToQQ_SBI_private"),
@@ -424,7 +424,7 @@ dataset = {
         "isSignal": True,
         "isOffshell": False,
         "sample_weights": None,
-        "sample_filters": None
+        "sample_filters": "Lhe_mWW < 160"
     }
 }
 

@@ -394,18 +394,6 @@ inline bool gstarHigh(float Gen_ZGstar_mass) {
     return (Gen_ZGstar_mass < 0. || Gen_ZGstar_mass > 4.);
 }
 
-
-// Top pT reweighting function
-inline float Top_pTrw(float topGenPtOTF, float antitopGenPtOTF) {
-    if (topGenPtOTF * antitopGenPtOTF > 0.) {
-        float w1 = 0.103 * std::exp(-0.0118 * topGenPtOTF) - 0.000134 * topGenPtOTF + 0.973;
-        float w2 = 0.103 * std::exp(-0.0118 * antitopGenPtOTF) - 0.000134 * antitopGenPtOTF + 0.973;
-        return std::sqrt(w1 * w2);
-    } else {
-        return 1.0;
-    }
-}
-
 // DY photon filter: returns true if event passes the DY photon veto
 inline bool DYPhotonFilter(const UInt_t& nPhotonGen,
                            const RVec<Float_t>& PhotonGen_pt,
@@ -441,3 +429,24 @@ inline bool WjetsPhotonFilter(const UInt_t& nPhotonGen,
     return true; // Event passes filter if no such photon exists
 }
 
+inline float Top_pTrw(const ROOT::VecOps::RVec<int>& GenPart_pdgId,
+                      const ROOT::VecOps::RVec<unsigned int>& GenPart_statusFlags,
+                      const ROOT::VecOps::RVec<float>& GenPart_pt) {
+    float topGenPtOTF = 0.0;
+    float antitopGenPtOTF = 0.0;
+    for (size_t i = 0; i < GenPart_pdgId.size(); ++i) {
+        if (GenPart_pdgId[i] == 6 && ((GenPart_statusFlags[i] >> 13) & 1)) {
+            topGenPtOTF += GenPart_pt[i];
+        }
+        if (GenPart_pdgId[i] == -6 && ((GenPart_statusFlags[i] >> 13) & 1)) {
+            antitopGenPtOTF += GenPart_pt[i];
+        }
+    }
+    if (topGenPtOTF * antitopGenPtOTF > 0.) {
+        float w1 = 0.103 * std::exp(-0.0118 * topGenPtOTF) - 0.000134 * topGenPtOTF + 0.973;
+        float w2 = 0.103 * std::exp(-0.0118 * antitopGenPtOTF) - 0.000134 * antitopGenPtOTF + 0.973;
+        return std::sqrt(w1 * w2);
+    } else {
+        return 1.0;
+    }
+}

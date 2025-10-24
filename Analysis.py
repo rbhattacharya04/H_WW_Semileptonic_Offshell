@@ -31,10 +31,10 @@ def makeRDF(dataset_name, wtagger="Nominal"):
         df = df.Define("passDYPhotonFilter", "DYPhotonFilter(nPhotonGen, PhotonGen_pt, PhotonGen_eta, PhotonGen_isPrompt, nLeptonGen, LeptonGen_pt, LeptonGen_isPrompt)" )
         df = df.Define("passWjetsPhotonFilter", "WjetsPhotonFilter(nPhotonGen, PhotonGen_pt, PhotonGen_eta, PhotonGen_isPrompt)")
         df = df.Define("mjjGenmax","genMjjmax(nGenJet, GenJet_pt, GenJet_eta, GenJet_phi, GenJet_mass, nGenDressedLepton, GenDressedLepton_pt, GenDressedLepton_eta, GenDressedLepton_phi)")
+        df = df.Define("Top_pTrw", "Top_pTrw(GenPart_pdgId, GenPart_statusFlags, GenPart_pt)")
         df = df.Define("gstarLowWeight", "0.94 * float(gstarLow(Gen_ZGstar_mass))")
         df = df.Define("gstarHighWeight", "1.14 * float(gstarHigh(Gen_ZGstar_mass))")
         df = df.Define("VgWeight", "gstarLowWeight + gstarHighWeight")
-       
        
         if isSignal:
             df = df.Define("Lhe_mWW", "computeMWW(nLHEPart, LHEPart_pt, LHEPart_eta, LHEPart_phi, LHEPart_mass, LHEPart_pdgId, LHEPart_status)")
@@ -173,8 +173,10 @@ args = parser.parse_args()
 histograms = {}
 #for keys in dataset:
 #histograms["ggH_sonly_off"] = makeRDF(dataset["ggH_sonly_off"],True)
-histograms["ggH_sonly_off"] = makeRDF("ggH_sonly_off",args.wtag)
-#print(histograms)
+#histograms["DY_else"] = makeRDF("DY_else",args.wtag)
+#histograms["DY_else"] = makeRDF("DY_else",args.wtag)
+histograms["WGToLNuG"] = makeRDF("WGToLNuG",args.wtag)
+
 
 #
 
@@ -199,13 +201,12 @@ histograms["ggH_sonly_off"] = makeRDF("ggH_sonly_off",args.wtag)
 # Example main loop
 
 output_file = ROOT.TFile("output.root", "RECREATE")
-histograms["ggH_sonly_off"]["Cutflow1"].Write()
-histograms["ggH_sonly_off"]["Cutflow2"].Write()
-histograms["ggH_sonly_off"]["Cutflow3"].Write()
-histograms["ggH_sonly_off"]["Cutflow4"].Write()
-histograms["ggH_sonly_off"]["Cutflow5"].Write()
+histograms["WGToLNuG"]["Cutflow1"].Write()
+histograms["WGToLNuG"]["Cutflow2"].Write()
+histograms["WGToLNuG"]["Cutflow3"].Write()
+histograms["WGToLNuG"]["Cutflow4"].Write()
+histograms["WGToLNuG"]["Cutflow5"].Write()
 output_file.Close()
-
 
 
 
