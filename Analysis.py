@@ -8,27 +8,47 @@ ROOT.EnableImplicitMT()
 ROOT.gInterpreter.Declare('#include "SemiLeptonic.h"')
 
 def makeRDF(dataset_name, wtagger="Nominal"):
+    print(dataset_name)
     results = {}
     # Get files and isMC from dataset
     files = dataset[dataset_name]["files"]
     isMC = dataset[dataset_name]["isMC"]
     isSignal = dataset[dataset_name]["isSignal"]
     isOffshell = dataset[dataset_name]["isOffshell"]
-    
+    #files = ["/afs/cern.ch/work/r/rbhattac/public/DY_v9_NanoAOD/13D0AD97-6B32-CB4C-BA87-5E37BA4CF20E.root"]
     df_run = ROOT.RDataFrame("Runs", files)
+    #ROOT.RDF.Experimental.AddProgressBar(df_run)
     sum_result = df_run.Sum("genEventSumw")
     genEventSumw = sum_result.GetValue()
     print(f"genEventSumw = {genEventSumw}")
+    h1 = ROOT.TH1F("genEventWeight", "Example Histogram;X-axis Label;Y-axis Label", 5, -0.5, 4.5)
+    h1.SetBinContent(1, genEventSumw)
  
     df = ROOT.RDataFrame("Events", files)
     #df = df.Range(1000)
     #ROOT.RDF.Experimental.AddProgressBar(df)
     #XS_Weight_cal = (59.7*1000*0.775)/genEventSumw
-    XS_Weight_cal = (59.7*1000*0.11)/genEventSumw
+    if isSignal: 
+        XS_Weight_cal = (1000*0.4357)/genEventSumw
     
     df = df.Define("weight","1")
     
+    #count = df.Count()
+    #print(f"No. of events : {count.GetValue()}")
     if isMC:
+        sum_genWeight = df.Sum("genWeight")
+        print(f"sum_genWeight = {sum_genWeight.GetValue()}")
+        h1.SetBinContent(2,sum_genWeight.GetValue())
+
+        #df = df.Define("DYPhotonWeight", "float(DYPhotonFilter(nPhotonGen, PhotonGen_pt, PhotonGen_eta, PhotonGen_isPrompt, nLeptonGen, LeptonGen_pt, LeptonGen_isPrompt))")
+        #df = df.Define("WWGenWeight", "float(!((mjjGen_max > 150) && GenLHE))")
+        #df = df.Define("VgWeight", "float(Gen_ZGstar_mass <= 0)")
+        #df = df.Define("gstarLowWeight", "0.94 * float(gstarLow(Gen_ZGstar_mass))")
+        #df = df.Define("gstarHighWeight", "1.14 * float(gstarHigh(Gen_ZGstar_mass))")
+        df = df.Define("DYPhotonFilter", "DYPhotonFilter(nPhotonGen, PhotonGen_pt, PhotonGen_eta, PhotonGen_isPrompt, nLeptonGen, LeptonGen_pt, LeptonGen_isPrompt)")
+        #df = df.Define("passWjetsPhotonFilter", "WjetsPhotonFilter(nPhotonGen, PhotonGen_pt, PhotonGen_eta, PhotonGen_isPrompt)")
+        #df = df.Define("Top_pTrw","Top_pTrw(topGenPtOTF, antitopGenPtOTF)")
+
         if isSignal:
             df = df.Define("Lhe_mWW", "computeMWW(nLHEPart, LHEPart_pt, LHEPart_eta, LHEPart_phi, LHEPart_mass, LHEPart_pdgId, LHEPart_status)")
             if isOffshell:
@@ -37,9 +57,22 @@ def makeRDF(dataset_name, wtagger="Nominal"):
                 df = df.Filter("Lhe_mWW < 160")
         #comment out the following two lines as I have defined weight as above
     
-        #df = df.Redefine("weight",f"weight*genWeight*{XS_Weight_cal}*METFilter_MC*puWeight*EMTFbug_veto") #XSWeight is genweight*baseW https://github.com/sv3048/LatinoAnalysis/blob/SemilepOFFSHELL/NanoGardener/python/data/formulasToAdd_MCnoSF_Full2018v9.py#L29-L31
-        df = df.Redefine("weight",f"weight*genWeight*{XS_Weight_cal}") #XSWeight is genweight*baseW https://github.com/sv3048/LatinoAnalysis/blob/SemilepOFFSHELL/NanoGardener/python/data/formulasToAdd_MCnoSF_Full2018v9.py#L29-L31
-    
+        if isSignal:
+            #df = df.Redefine("weight",f"weight*genWeight*{XS_Weight_cal}*METFilter_MC*puWeight*EMTFbug_veto") #XSWeight is genweight*baseW https://github.com/sv3048/LatinoAnalysis/blob/SemilepOFFSHELL/NanoGardener/python/data/formulasToAdd_MCnoSF_Full2018v9.py#L29-L31
+            df = df.Redefine("weight",f"weight*genWeight*{XS_Weight_cal}*METFilter_MC*puWeight*EMTFbug_veto") #XSWeight is genweight*baseW https://github.com/sv3048/LatinoAnalysis/blob/SemilepOFFSHELL/NanoGardener/python/data/formulasToAdd_MCnoSF_Full2018v9.py#L29-L31
+        else:
+            df = df.Redefine("weight","weight*XSWeight*METFilter_MC*puWeight*EMTFbug_veto")
+
+    results["genWeightSum"] = h1
+   
+    ## CHECK ?? 
+    # Apply sample-specific weight/filter
+    if dataset[dataset_name]["sample_weights"]:
+        df = df.Redefine("weight", f"weight*({dataset[dataset_name]['sample_weights']})")
+    if dataset[dataset_name]["sample_filters"]:
+        df = df.Filter(dataset[dataset_name]["sample_filters"])
+
+ 
     df = df.Define("cutflow_stage","0")
     results["Cutflow_Start"] = df.Histo1D(("h_cutflow_Start","Cutflow Start",1,-0.5,0.5),"cutflow_stage","weight")
 
@@ -82,6 +115,11 @@ def makeRDF(dataset_name, wtagger="Nominal"):
 
     results["Cutflow_AnaLepton"] = df.Histo1D(("h_cutflow_AnaLepton","Cutflow AnaLepton",1,-0.5,0.5),"cutflow_stage","weight")
     
+    df = df.Define("isLeptonHole_ex","isHoleLepton(Leading_Lepton_eta,Leading_Lepton_phi,Leading_Lepton_pdgId)")
+    df = df.Filter("!isLeptonHole_ex","Is Hole Lepton")
+    results["Cutflow_notHoleLepton"] = df.Histo1D(("h_cutflow_notHoleLepton","Cutflow notHoleLepton",1,-0.5,0.5),"cutflow_stage","weight")
+
+    
     df = df.Define("isVetoLepton","isVetoLepton(nLepton,Lepton_pt,Lepton_isLoose)")
     df = df.Filter("!isVetoLepton", "Veto Lepton Cut")
    
@@ -101,13 +139,15 @@ def makeRDF(dataset_name, wtagger="Nominal"):
         df = df.Redefine("weight","weight*JetPUIDSF")
     
     df = df.Define("GoodFatJet_idx","isGoodFatjet_indx(FatJet_eta,FatJet_phi,FatJet_jetId,Lepton_eta,Lepton_phi)")
-    df = df.Filter("GoodFatJet_idx != -1", "Good Fat Jet cut")
+    df = df.Filter("!(GoodFatJet_idx == -1)", "Good Fat Jet cut")
     results["Cutflow_JetCleaning"] = df.Histo1D(("h_cutflow_JetCleaning","Cutflow JetCleaning",1,-0.5,0.5),"cutflow_stage","weight")
     df = df.Define("AnaFatJet_pt","FatJet_pt[GoodFatJet_idx]")
     df = df.Define("AnaFatJet_eta","FatJet_eta[GoodFatJet_idx]")
     df = df.Define("AnaFatJet_phi", "FatJet_phi[GoodFatJet_idx]")
     df = df.Define("AnaFatJet_mass", "FatJet_mass[GoodFatJet_idx]")
+    df = df.Define("AnaFatJet_msoftdrop", "FatJet_msoftdrop[GoodFatJet_idx]")
     df = df.Define("AnaFatJet_jetId","FatJet_jetId[GoodFatJet_idx]")
+    
 
     
     df = df.Define("CleanJet_btag", "Take(Jet_btagDeepFlavB, CleanJet_jetIdx)")
@@ -139,10 +179,19 @@ def makeRDF(dataset_name, wtagger="Nominal"):
             if hasattr(ROOT, "initializeWTaggerSF"):
                 ROOT.initializeWTaggerSF("W_MD_Run2_SF.csv")
     #df = df.Filter("AnaFatJet_jetId == 2", "Tight Jet Id cut")
+    
+    #df = df.Define("isJetHole_ex","isHole_ex(AnaFatJet_eta,AnaFatJet_phi)")
+    #df = df.Filter("!isJetHole_ex","Is Hole Jet")
+    results["Cutflow_notHoleJet"] = df.Histo1D(("h_cutflow_notHoleJet","Cutflow notHoleJet",1,-0.5,0.5),"cutflow_stage","weight")
+    
+    df = df.Filter("(AnaFatJet_msoftdrop > 65 && AnaFatJet_msoftdrop < 105)","Mass cut")
+    results["Cutflow_Jet_mass"] = df.Histo1D(("h_cutflow_Mass_cut","Cutflow Jet Mass",1,-0.5,0.5),"cutflow_stage","weight")
+    
     results["Jet_pt"] = df.Histo1D(("h_Jet_pt","Jet pt",400,100,500),"AnaFatJet_pt","weight") 
     df = df.Filter("AnaFatJet_pt>200","Jet pT cut")
     results["Cutflow_Jet_Pt"] = df.Histo1D(("h_cutflow_Jet_Pt","Cutflow Jet Pt",1,-0.5,0.5),"cutflow_stage","weight")
     
+
     if wtagger == "Nominal":
         results["Jet_Nominal_WTagger"] = df.Histo1D(("h_Nominal_WTagger", "WTagger Nominal", 10, 0, 1), "AnaFatJet_nom_wtag","weight")
     elif wtagger == "MD":
@@ -183,7 +232,7 @@ def makeRDF(dataset_name, wtagger="Nominal"):
       
     report = df.Report()
     report.Print()
-
+    
     
  
     return results
@@ -214,6 +263,11 @@ elif args.run == "sig+sbi":
 elif args.run == "sig":
     print("Wrong3")
     histograms["ggH_sonly_off"] = makeRDF("ggH_sonly_off",args.wtag)
+    #histograms["ST_s-channel"] = makeRDF("ST_s-channel",args.wtag)
+    #histograms["ST_t-channel_antitop"] = makeRDF("ST_t-channel_antitop",args.wtag)
+    #histograms["ST_t-channel_top"] = makeRDF("ST_t-channel_top",args.wtag)
+    #histograms["ST_tW_antitop"] = makeRDF("ST_tW_antitop",args.wtag)
+    #histograms["ST_tW_top"] = makeRDF("ST_tW_top",args.wtag)
 else:
     print("Right")
     for keys in dataset:
