@@ -21,6 +21,13 @@ using namespace ROOT::VecOps;
 std::vector<std::array<float,7>> _values = {};
 std::vector<std::array<float,9>> _wtagger_sfs = {};
 
+inline bool isHole_ex(const float cand_eta, const float cand_phi){
+  bool Hole_ex = false;
+  if ((cand_eta < -1.3 && cand_eta > -2.5) && (cand_phi > -1.57 && cand_phi < -0.87)) Hole_ex = true;
+  return Hole_ex;
+
+}
+
 bool isAnalysisLepton(float Leading_Lepton_pdgId, float Leading_Lepton_pt, float Leading_Lepton_eta, float Leading_Lepton_phi){
   bool isAnaLepton = false;
   if(abs(Leading_Lepton_pdgId) == 11 && Leading_Lepton_pt > 35) isAnaLepton = true;
@@ -186,19 +193,43 @@ int isGoodFatjet_indx(const RVec<Float_t>& FatJet_eta, const RVec<Float_t>& FatJ
                           const RVec<Int_t>& FatJet_jetId,
                           const RVec<Float_t>& Lepton_eta, const RVec<Float_t>& Lepton_phi)
 {
+  int matchedJet = -1;
   for(unsigned int iJet = 0; iJet < FatJet_eta.size(); iJet++){
     float dr = 999.;
-    if (FatJet_jetId.at(iJet) < 0) continue;
-    if (abs(FatJet_eta.at(iJet)) > 2.4) continue;
+    if (FatJet_jetId.at(iJet) <= 0) continue;
+    if (abs(FatJet_eta.at(iJet)) >= 2.4) continue;
+    if (isHole_ex(FatJet_eta.at(iJet),FatJet_phi.at(iJet))) continue;
 
     for (unsigned int iLep = 0; iLep < Lepton_eta.size(); iLep++){
       float tmp_dr  = deltaR(FatJet_eta.at(iJet), FatJet_phi.at(iJet),
 	  Lepton_eta.at(iLep), Lepton_phi.at(iLep));
-      if (tmp_dr < dr) dr = tmp_dr;
+      if ( dr ) dr = tmp_dr;
     }
-    if (dr > 0.8) return iJet;         
+    if (dr >= 0.8) matchedJet = iJet;         
   }
-  return -1;
+  return matchedJet;
+}
+
+inline RVec<bool> getCleanJetNotOverlapping(
+    float FatJet_eta,
+    float FatJet_phi,
+    const RVec<Float_t>& CleanJet_eta,
+    const RVec<Float_t>& CleanJet_phi
+) {
+    RVec<bool> mask(CleanJet_eta.size(), false);
+    for (size_t iJet = 0; iJet < CleanJet_eta.size(); ++iJet) {
+        float dr = deltaR(FatJet_eta, FatJet_phi, CleanJet_eta[iJet], CleanJet_phi[iJet]);
+        mask[iJet] = (dr >= 0.8);
+    }
+    return mask;
+}
+
+inline double getBTagSF(const RVec<Float_t>& CleanJet_btagSF_notOverlap){
+  double sf = 1.0;
+  for (int i=0; i<CleanJet_btagSF_notOverlap.size(); i++){
+    sf *= CleanJet_btagSF_notOverlap.at(i);
+  }
+  return sf;
 }
 
 
@@ -222,125 +253,6 @@ inline double computePUJetIdSF(const UInt_t& nJet,
     return TMath::Exp(logSum);
 }
 
-
-
-
-// Returns indices of CleanJets not overlapping with the selected FatJet (ΔR < 0.8)
-inline RVec<int> getCleanJetNotOverlapping(
-    float FatJet_eta,
-    float FatJet_phi,
-    const RVec<Float_t>& CleanJet_eta,
-    const RVec<Float_t>& CleanJet_phi
-) {
-    RVec<int> nonOverlappingJets;
-    for (size_t iJet = 0; iJet < CleanJet_eta.size(); ++iJet) {
-        float dr = deltaR(FatJet_eta, FatJet_phi, CleanJet_eta[iJet], CleanJet_phi[iJet]);
-        if (dr >= 0.8) nonOverlappingJets.push_back(iJet);
-    }
-    return nonOverlappingJets;
-}
-
-
-// bVeto_boo [DeepFlavB > 0.2783 medium WP]
-inline bool bVeto_boo(
-    const RVec<Float_t>& CleanJet_pt,
-    const RVec<Float_t>& CleanJet_eta,
-    const RVec<Int_t>& CleanJet_jetIdx,
-    const RVec<Float_t>& Jet_btagDeepFlavB,
-    const RVec<int>& CleanJet_notOverlapping,
-    float bWP = 0.2783
-) {
-    for (auto idx : CleanJet_notOverlapping) {
-        if (CleanJet_pt[idx] > 20 && std::abs(CleanJet_eta[idx]) < 2.5) {
-            int jetIdx = CleanJet_jetIdx[idx];
-            if (jetIdx >= 0 && jetIdx < Jet_btagDeepFlavB.size()) {
-                if (Jet_btagDeepFlavB[jetIdx] > bWP) return false;
-            }
-        }
-    }
-    return true; // No b-tagged jets found
-}
-
-// Returns the b-veto SF for bVeto_boo
-inline double bVeto_booSF(
-    const RVec<Float_t>& CleanJet_pt,
-    const RVec<Float_t>& CleanJet_eta,
-    const RVec<Int_t>& CleanJet_jetIdx,
-    const RVec<Float_t>& Jet_btagSF_deepjet_shape,
-    const RVec<int>& CleanJet_notOverlapping,
-    float ptCut = 20.0
-) {
-    double logSum = 0.0;
-    for (auto idx : CleanJet_notOverlapping) {
-        bool passJet = (CleanJet_pt[idx] > ptCut) && (std::abs(CleanJet_eta[idx]) < 2.5);
-        int jetIdx = CleanJet_jetIdx[idx];
-        if (jetIdx >= 0 && jetIdx < Jet_btagSF_deepjet_shape.size()) {
-            if (passJet) {
-                logSum += std::log(Jet_btagSF_deepjet_shape[jetIdx]);
-            }
-        }
-    }
-    return std::exp(logSum);
-}
-
-
-// for addition of bTagSF
-inline bool bReq_boo(
-    const RVec<Float_t>& CleanJet_pt,
-    const RVec<Float_t>& CleanJet_eta,
-    const RVec<Int_t>& CleanJet_jetIdx,
-    const RVec<Float_t>& Jet_btagDeepFlavB,
-    const RVec<int>& CleanJet_notOverlapping,
-    float bWP = 0.2783
-) {
-    for (auto idx : CleanJet_notOverlapping) {
-        if (CleanJet_pt[idx] > 30 && std::abs(CleanJet_eta[idx]) < 2.5) {
-            int jetIdx = CleanJet_jetIdx[idx];
-            if (jetIdx >= 0 && jetIdx < Jet_btagDeepFlavB.size()) {
-                if (Jet_btagDeepFlavB[jetIdx] > bWP) return true;
-            }
-        }
-    }
-    return false;
-}
-
-inline double bReq_booSF(
-    const RVec<Float_t>& CleanJet_pt,
-    const RVec<Float_t>& CleanJet_eta,
-    const RVec<Int_t>& CleanJet_jetIdx,
-    const RVec<Float_t>& Jet_btagSF_deepjet_shape,
-    const RVec<int>& CleanJet_notOverlapping,
-    float ptCut = 30.0
-) {
-    double logSum = 0.0;
-    for (auto idx : CleanJet_notOverlapping) {
-        bool passJet = (CleanJet_pt[idx] > ptCut) && (std::abs(CleanJet_eta[idx]) < 2.5);
-        int jetIdx = CleanJet_jetIdx[idx];
-        if (jetIdx >= 0 && jetIdx < Jet_btagSF_deepjet_shape.size()) {
-            if (passJet) {
-                logSum += std::log(Jet_btagSF_deepjet_shape[jetIdx]);
-            }
-        }
-    }
-    return std::exp(logSum);
-}
-
-inline bool boosted_nocut_res(
-    float PuppiMET_pt,
-    int GoodFatJet_idx,
-    const RVec<Float_t>& FatJet_pt,
-    const RVec<Float_t>& FatJet_deepTag_WvsQCD,
-    const RVec<Float_t>& FatJet_eta
-) {
-    if (
-        PuppiMET_pt > 40 &&
-        GoodFatJet_idx >= 0 &&
-        FatJet_pt[GoodFatJet_idx] > 200 &&
-        FatJet_deepTag_WvsQCD[GoodFatJet_idx] > 0.961 &&
-        std::abs(FatJet_eta[GoodFatJet_idx]) < 2.4
-    ) return true;
-    return false;
-}
 
 // genjjMax -> Check carefully again if anything. is redundant
 //  for addition of Samples Weight and cuts
