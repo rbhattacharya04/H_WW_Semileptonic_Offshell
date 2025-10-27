@@ -370,3 +370,20 @@ inline int GenLHE(const ROOT::VecOps::RVec<int>& LHEPart_pdgId) {
     }
     return sum == 0;
 }
+
+inline bool isHoleLepton(const float cand_eta, const float cand_phi, const float pdgId){
+  if(abs(pdgId) == 13) return false;
+  if(abs(pdgId) == 11) return isHole_ex(cand_eta,cand_phi);
+}
+
+inline double getHiggsCandidate (const Float_t& Lepton_pt, const Float_t& Lepton_eta, const Float_t& Lepton_phi,
+				const Float_t& Jet_pt, const Float_t& Jet_eta, const Float_t& Jet_phi, const Float_t& Jet_mass, int var){
+  ROOT::Math::PtEtaPhiMVector Lepton = ROOT::Math::PtEtaPhiMVector(Lepton_pt, Lepton_eta,
+                                      Lepton_phi, 0);
+  ROOT::Math::PtEtaPhiMVector Jet = ROOT::Math::PtEtaPhiMVector(Jet_pt, Jet_eta, Jet_phi, Jet_mass);
+  ROOT::Math::PtEtaPhiMVector H_vis = Lepton + Jet;
+  if(var == 0 ) return H_vis.M();
+  if(var == 1) return H_vis.Pt();
+  if(var == 2) return H_vis.Eta();
+  if(var == 3) return H_vis.Phi();
+}

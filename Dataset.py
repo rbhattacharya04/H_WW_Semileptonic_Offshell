@@ -34,9 +34,6 @@ dataset = {
         "isOffshell": False,
         "sample_weights": None,
         "sample_filters": None
-        "isOffshell": False,
-        "sample_weights": None,
-        "sample_filters": None
     },
 
     "DYJetsToLL_M-50": {
@@ -192,9 +189,6 @@ dataset = {
         "isOffshell": False,
         "sample_weights": None,
         "sample_filters": None
-        "isOffshell": False,
-        "sample_weights": None,
-        "sample_filters": None
     },
 
     "WW": {
@@ -241,7 +235,7 @@ dataset = {
         "isSignal": False,
         "isOffshell": False,
         "sample_weights": "(LHE_HT < 70)", # Apply HT cut to W+jets LO sample as weight ? # check with Rajarshi
-        "sample_filters": "DYPhotonFilter" # Apply DYPhotonFilter to W+jets LO sample
+        "sample_filters": "WjetsPhotonFilter" # Apply WjetsPhotonFilter to W+jets LO sample
     },
     "WJetsToLNu_HT70To100": {
         "files": list_files_in_folder(mc_path, "WJetsToLNu_HT70To100"),
@@ -249,7 +243,7 @@ dataset = {
         "isSignal": False,
         "isOffshell": False,
         "sample_weights": "1.21 * 0.95148",
-        "sample_filters": None
+        "sample_filters": "WjetsPhotonFilter"
     },
     "WJetsToLNu_HT100To200": {
         "files": list_files_in_folder(mc_path, "WJetsToLNu_HT100To200"),
@@ -257,7 +251,7 @@ dataset = {
         "isSignal": False,
         "isOffshell": False,
         "sample_weights": "0.9471",
-        "sample_filters": None
+        "sample_filters": "WjetsPhotonFilter"
     },
     "WJetsToLNu_HT200To400": {
         "files": list_files_in_folder(mc_path, "WJetsToLNu_HT200To400"),
@@ -265,7 +259,7 @@ dataset = {
         "isSignal": False,
         "isOffshell": False,
         "sample_weights": "0.9515",
-        "sample_filters": None
+        "sample_filters": "WjetsPhotonFilter"
     },
     "WJetsToLNu_HT400To600": {
         "files": list_files_in_folder(mc_path, "WJetsToLNu_HT400To600"),
@@ -273,7 +267,7 @@ dataset = {
         "isSignal": False,
         "isOffshell": False,
         "sample_weights": "0.9581",
-        "sample_filters": None
+        "sample_filters": "WjetsPhotonFilter"
     },
     "WJetsToLNu_HT600To800": {
         "files": list_files_in_folder(mc_path, "WJetsToLNu_HT600To800"),
@@ -281,7 +275,7 @@ dataset = {
         "isSignal": False,
         "isOffshell": False,
         "sample_weights": "1.0582",
-        "sample_filters": None
+        "sample_filters": "WjetsPhotonFilter"
     },
     "WJetsToLNu_HT800To1200": {
         "files": list_files_in_folder(mc_path, "WJetsToLNu_HT800To1200"),
@@ -289,7 +283,7 @@ dataset = {
         "isSignal": False,
         "isOffshell": False,
         "sample_weights": "1.1285",
-        "sample_filters": None
+        "sample_filters": "WjetsPhotonFilter"
     },
     "WJetsToLNu_HT1200To2500": {
         "files": list_files_in_folder(mc_path, "WJetsToLNu_HT1200To2500"),
@@ -297,7 +291,7 @@ dataset = {
         "isSignal": False,
         "isOffshell": False,
         "sample_weights": "1.3268",
-        "sample_filters": None
+        "sample_filters": "WjetsPhotonFilter"
     },
     "WJetsToLNu_HT2500ToInf": {
         "files": list_files_in_folder(mc_path, "WJetsToLNu_HT2500ToInf"),
@@ -305,7 +299,7 @@ dataset = {
         "isSignal": False,
         "isOffshell": False,
         "sample_weights": "2.7948",
-        "sample_filters": None
+        "sample_filters": "WjetsPhotonFilter"
     },
     "Vg": {
         "files": (
