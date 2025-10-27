@@ -195,7 +195,7 @@ dataset = {
         "isMC": True,
         "isSignal": False,
         "isOffshell": False,
-        "sample_weights": None, #fix it later
+        "sample_weights": "Lhe_mWW<160", #fix it later
         "sample_filters": None
     },
     "ggH_bonly_off": {
@@ -203,7 +203,7 @@ dataset = {
         "isMC": True,
         "isSignal": False,
         "isOffshell": True,
-        "sample_weights": None, #fix it later
+        "sample_weights": "Lhe_mWW > 160", #fix it later
         "sample_filters": None
     },
     "qqWWqq": {

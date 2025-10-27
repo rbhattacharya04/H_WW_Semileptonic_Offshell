@@ -175,7 +175,7 @@ histograms = {}
 #histograms["ggH_sonly_off"] = makeRDF(dataset["ggH_sonly_off"],True)
 #histograms["DY_else"] = makeRDF("DY_else",args.wtag)
 #histograms["DY_else"] = makeRDF("DY_else",args.wtag)
-histograms["WW"] = makeRDF("WW",args.wtag)
+histograms["TTToSemiLeptonic"] = makeRDF("TTToSemiLeptonic",args.wtag)
 
 
 #
@@ -201,11 +201,11 @@ histograms["WW"] = makeRDF("WW",args.wtag)
 # Example main loop
 
 output_file = ROOT.TFile("output.root", "RECREATE")
-histograms["WW"]["Cutflow1"].Write()
-histograms["WW"]["Cutflow2"].Write()
-histograms["WW"]["Cutflow3"].Write()
-histograms["WW"]["Cutflow4"].Write()
-histograms["WW"]["Cutflow5"].Write()
+histograms["TTToSemiLeptonic"]["Cutflow1"].Write()
+histograms["TTToSemiLeptonic"]["Cutflow2"].Write()
+histograms["TTToSemiLeptonic"]["Cutflow3"].Write();
+histograms["TTToSemiLeptonic"]["Cutflow4"].Write();
+histograms["TTToSemiLeptonic"]["Cutflow5"].Write();
 output_file.Close()
 
 
