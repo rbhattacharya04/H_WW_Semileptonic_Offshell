@@ -21,6 +21,13 @@ using namespace ROOT::VecOps;
 std::vector<std::array<float,7>> _values = {};
 std::vector<std::array<float,9>> _wtagger_sfs = {};
 
+inline bool isHole_ex(const float cand_eta, const float cand_phi){
+  bool Hole_ex = false;
+  if ((cand_eta < -1.3 && cand_eta > -2.5) && (cand_phi > -1.57 && cand_phi < -0.87)) Hole_ex = true;
+  return Hole_ex;
+
+}
+
 bool isAnalysisLepton(float Leading_Lepton_pdgId, float Leading_Lepton_pt, float Leading_Lepton_eta, float Leading_Lepton_phi){
   bool isAnaLepton = false;
   if(abs(Leading_Lepton_pdgId) == 11 && Leading_Lepton_pt > 35) isAnaLepton = true;
@@ -186,19 +193,43 @@ int isGoodFatjet_indx(const RVec<Float_t>& FatJet_eta, const RVec<Float_t>& FatJ
                           const RVec<Int_t>& FatJet_jetId,
                           const RVec<Float_t>& Lepton_eta, const RVec<Float_t>& Lepton_phi)
 {
+  int matchedJet = -1;
   for(unsigned int iJet = 0; iJet < FatJet_eta.size(); iJet++){
     float dr = 999.;
-    if (FatJet_jetId.at(iJet) < 0) continue;
-    if (abs(FatJet_eta.at(iJet)) > 2.4) continue;
+    if (FatJet_jetId.at(iJet) <= 0) continue;
+    if (abs(FatJet_eta.at(iJet)) >= 2.4) continue;
+    if (isHole_ex(FatJet_eta.at(iJet),FatJet_phi.at(iJet))) continue;
 
     for (unsigned int iLep = 0; iLep < Lepton_eta.size(); iLep++){
       float tmp_dr  = deltaR(FatJet_eta.at(iJet), FatJet_phi.at(iJet),
 	  Lepton_eta.at(iLep), Lepton_phi.at(iLep));
-      if (tmp_dr < dr) dr = tmp_dr;
+      if ( dr ) dr = tmp_dr;
     }
-    if (dr > 0.8) return iJet;         
+    if (dr >= 0.8) matchedJet = iJet;         
   }
-  return -1;
+  return matchedJet;
+}
+
+inline RVec<bool> getCleanJetNotOverlapping(
+    float FatJet_eta,
+    float FatJet_phi,
+    const RVec<Float_t>& CleanJet_eta,
+    const RVec<Float_t>& CleanJet_phi
+) {
+    RVec<bool> mask(CleanJet_eta.size(), false);
+    for (size_t iJet = 0; iJet < CleanJet_eta.size(); ++iJet) {
+        float dr = deltaR(FatJet_eta, FatJet_phi, CleanJet_eta[iJet], CleanJet_phi[iJet]);
+        mask[iJet] = (dr >= 0.8);
+    }
+    return mask;
+}
+
+inline double getBTagSF(const RVec<Float_t>& CleanJet_btagSF_notOverlap){
+  double sf = 1.0;
+  for (int i=0; i<CleanJet_btagSF_notOverlap.size(); i++){
+    sf *= CleanJet_btagSF_notOverlap.at(i);
+  }
+  return sf;
 }
 
 inline double computePUJetIdSF(const UInt_t& nJet,
@@ -219,3 +250,115 @@ inline double computePUJetIdSF(const UInt_t& nJet,
     return TMath::Exp(logSum);
 }
 
+inline double getHiggsCandidate (const Float_t& Lepton_pt, const Float_t& Lepton_eta, const Float_t& Lepton_phi,
+				const Float_t& Jet_pt, const Float_t& Jet_eta, const Float_t& Jet_phi, const Float_t& Jet_mass, int var){
+  ROOT::Math::PtEtaPhiMVector Lepton = ROOT::Math::PtEtaPhiMVector(Lepton_pt, Lepton_eta,
+                                      Lepton_phi, 0);
+  ROOT::Math::PtEtaPhiMVector Jet = ROOT::Math::PtEtaPhiMVector(Jet_pt, Jet_eta, Jet_phi, Jet_mass);
+  ROOT::Math::PtEtaPhiMVector H_vis = Lepton + Jet;
+  if(var == 0 ) return H_vis.M();
+  if(var == 1) return H_vis.Pt();
+  if(var == 2) return H_vis.Eta();
+  if(var == 3) return H_vis.Phi();
+}
+
+// genjjMax -> Check carefully again if anything. is redundant
+//  for addition of Samples Weight and cuts
+// Computes the maximum mjj from all pairs of GenJets not overlapping with GenDressedLeptons
+inline float genMjjmax(const UInt_t& nGenJet,
+                       const RVec<Float_t>& GenJet_pt,
+                       const RVec<Float_t>& GenJet_eta,
+                       const RVec<Float_t>& GenJet_phi,
+                       const RVec<Float_t>& GenJet_mass,
+                       const UInt_t& nGenDressedLepton,
+                       const RVec<Float_t>& GenDressedLepton_pt,
+                       const RVec<Float_t>& GenDressedLepton_eta,
+                       const RVec<Float_t>& GenDressedLepton_phi) {
+    std::vector<int> cleanJetIdx;
+    // Select GenJets with pt > 30 and |eta| < 4.7, not overlapping with GenDressedLeptons (ΔR > 0.4)
+    for (UInt_t iJ = 0; iJ < nGenJet; ++iJ) {
+        if (GenJet_pt[iJ] < 30. || std::abs(GenJet_eta[iJ]) > 4.7) continue;
+        bool overlap = false;
+        for (UInt_t iL = 0; iL < nGenDressedLepton; ++iL) {
+            if (GenDressedLepton_pt[iL] < 10.) continue;
+            float dr = deltaR(GenJet_eta[iJ], GenJet_phi[iJ], GenDressedLepton_eta[iL], GenDressedLepton_phi[iL]);
+            if (dr < 0.4) {
+                overlap = true;
+                break;
+            }
+        }
+        if (!overlap) cleanJetIdx.push_back(iJ);
+    }
+    float mjjmax = -999.;
+    // Loop over all pairs of clean jets and compute mjj
+    for (size_t i = 0; i < cleanJetIdx.size(); ++i) {
+        TLorentzVector j1;
+        j1.SetPtEtaPhiM(GenJet_pt[cleanJetIdx[i]], GenJet_eta[cleanJetIdx[i]], GenJet_phi[cleanJetIdx[i]], GenJet_mass[cleanJetIdx[i]]);
+        for (size_t j = i+1; j < cleanJetIdx.size(); ++j) {
+            TLorentzVector j2;
+            j2.SetPtEtaPhiM(GenJet_pt[cleanJetIdx[j]], GenJet_eta[cleanJetIdx[j]], GenJet_phi[cleanJetIdx[j]], GenJet_mass[cleanJetIdx[j]]);
+            float mjj = (j1 + j2).M();
+            if (mjj > mjjmax) mjjmax = mjj;
+        }
+    }
+    return mjjmax;
+}
+
+// Returns true if Gen_ZGstar_mass > 0 and < 4 (gstarLow)
+inline bool gstarLow(float Gen_ZGstar_mass) {
+    return (Gen_ZGstar_mass > 0. && Gen_ZGstar_mass < 4.);
+}
+
+// Returns true if Gen_ZGstar_mass < 0 or > 4 (gstarHigh)
+inline bool gstarHigh(float Gen_ZGstar_mass) {
+    return (Gen_ZGstar_mass < 0. || Gen_ZGstar_mass > 4.);
+}
+
+// Top pT reweighting function (Top PAG)
+inline float Top_pTrw(float topGenPtOTF, float antitopGenPtOTF) {
+    if (topGenPtOTF * antitopGenPtOTF > 0.) {
+        float w1 = 0.103 * std::exp(-0.0118 * topGenPtOTF) - 0.000134 * topGenPtOTF + 0.973;
+        float w2 = 0.103 * std::exp(-0.0118 * antitopGenPtOTF) - 0.000134 * antitopGenPtOTF + 0.973;
+        return std::sqrt(w1 * w2);
+    } else {
+        return 1.0;
+    }
+}
+
+// DY photon filter: returns true if event passes the DY photon veto
+inline bool DYPhotonFilter(const UInt_t& nPhotonGen,
+                           const RVec<Float_t>& PhotonGen_pt,
+                           const RVec<Float_t>& PhotonGen_eta,
+                           const RVec<Int_t>& PhotonGen_isPrompt,
+                           const UInt_t& nLeptonGen,
+                           const RVec<Float_t>& LeptonGen_pt,
+                           const RVec<Int_t>& LeptonGen_isPrompt) {
+    int nPromptPhoton = 0;
+    int nPromptLepton = 0;
+    for (UInt_t i = 0; i < nPhotonGen; ++i) {
+        if (PhotonGen_isPrompt[i] == 1 && PhotonGen_pt[i] > 15 && std::abs(PhotonGen_eta[i]) < 2.6)
+            nPromptPhoton++;
+    }
+    for (UInt_t i = 0; i < nLeptonGen; ++i) {
+        if (LeptonGen_isPrompt[i] == 1 && LeptonGen_pt[i] > 15)
+            nPromptLepton++;
+    }
+    // Passes filter if NOT (at least one prompt photon and at least two prompt leptons)
+    return !(nPromptPhoton > 0 && nPromptLepton >= 2);
+}
+
+inline bool WjetsPhotonFilter(const UInt_t& nPhotonGen,
+                              const RVec<Float_t>& PhotonGen_pt,
+                              const RVec<Float_t>& PhotonGen_eta,
+                              const RVec<Int_t>& PhotonGen_isPrompt) {
+    for (UInt_t i = 0; i < nPhotonGen; ++i) {
+        if (PhotonGen_isPrompt[i] == 1 && PhotonGen_pt[i] > 10 && std::abs(PhotonGen_eta[i]) < 2.5)
+            return false; // Event fails filter if any such photon exists
+    }
+    return true; // Event passes filter if no such photon exists
+}
+
+inline bool isHoleLepton(const float cand_eta, const float cand_phi, const float pdgId){
+  if(abs(pdgId) == 13) return false;
+  if(abs(pdgId) == 11) return isHole_ex(cand_eta,cand_phi);
+}
