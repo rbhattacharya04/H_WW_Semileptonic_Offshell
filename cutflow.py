@@ -7,7 +7,7 @@ import pandas as pd
 #bkg_samples.remove("data")
 #bkg_samples.remove("ggH_sonly_off")
 #bkg_samples.remove("ggH_sand_off")
-cutflows = ["h_cutflow_Start","h_cutflow_Trigger","h_cutflow_LeptonGenMatching","h_cutflow_AnaLepton","h_cutflow_notHoleLepton", "h_cutflow_Veto_Lepton","h_cutflow_MET","h_cutflow_nFatJet","h_cutflow_JetCleaning","h_cutflow_bVeto","h_cutflow_notHoleJet", "h_cutflow_Mass_cut", "h_cutflow_Jet_Pt","h_cutflow_WTagger"]
+cutflows = ["h_cutflow_Start","h_cutflow_Trigger","h_cutflow_LeptonGenMatching","h_cutflow_AnaLepton","h_cutflow_notHoleLepton", "h_cutflow_Veto_Lepton","h_cutflow_MET","h_cutflow_nFatJet","h_cutflow_JetCleaning","h_cutflow_notHoleJet", "h_cutflow_Jet_Pt","h_cutflow_Mass_cut","h_cutflow_bVeto","h_cutflow_WTagger"]
 
 #bkg_samples = ["W + jets","Top","DY","WW","Vg","VgS","VZ","VVV","WWewk","VBF_V","ggH_sonly_on","ggH_sand_on"]
 signal = ["ggH_sonly_off"]
@@ -61,7 +61,11 @@ print("Signal_CutFlow")
 print(df_signal)
 
 df_signal_weighted = pd.DataFrame.from_dict(cutflow_signal_weighted,orient='index')
-df_signal_weighted['cum_eff'] = df_signal_weighted['value']/df_signal_weighted['value'].shift(1)
+df_signal_weighted = df_signal_weighted.rename(index={"h_cutflow_Start": "h_cutflow_TightLepton_METFilter_EMTFBugVeto"})
+start_value = {"h_start": {"value" : 26011.29}}
+new_row_df = pd.DataFrame.from_dict(start_value,orient='index')
+df_signal_weighted = pd.concat([new_row_df,df_signal_weighted])
+df_signal_weighted['rel_eff'] = df_signal_weighted['value']/df_signal_weighted['value'].shift(1)
 start = df_signal_weighted['value'].iloc[0]
 df_signal_weighted['abs_eff'] = df_signal_weighted['value']/start
 print("Signal_CutFlow_Weighted")

@@ -133,10 +133,11 @@ def makeRDF(dataset_name, wtagger="Nominal"):
 
     # Jet Selection
     df = df.Filter("nFatJet>=1","At Least 1 Fat Jet")
-    results["Cutflow_nFatJet"] = df.Histo1D(("h_cutflow_nFatJet","Cutflow nFatjet",1,-0.5,0.5),"cutflow_stage","weight")
     if isMC:
         df = df.Define("JetPUIDSF","computePUJetIdSF(nJet,Jet_jetId,Jet_electronIdx1,Jet_muonIdx1,Jet_PUIDSF_loose,Leading_Lepton_electronIdx,Leading_Lepton_muonIdx)")
         df = df.Redefine("weight","weight*JetPUIDSF")
+    
+    results["Cutflow_nFatJet"] = df.Histo1D(("h_cutflow_nFatJet","Cutflow nFatjet",1,-0.5,0.5),"cutflow_stage","weight")
     
     df = df.Define("GoodFatJet_idx","isGoodFatjet_indx(FatJet_eta,FatJet_phi,FatJet_jetId,Lepton_eta,Lepton_phi)")
     df = df.Filter("!(GoodFatJet_idx == -1)", "Good Fat Jet cut")
@@ -150,23 +151,6 @@ def makeRDF(dataset_name, wtagger="Nominal"):
     
 
     
-    df = df.Define("CleanJet_btag", "Take(Jet_btagDeepFlavB, CleanJet_jetIdx)")
-    if isMC:
-        df = df.Define("CleanJet_btag_SF","Take(Jet_btagSF_deepjet_shape,CleanJet_jetIdx)")
-    
-    df = df.Define("CleanJet_notOverlapping", "getCleanJetNotOverlapping(AnaFatJet_eta, AnaFatJet_phi, CleanJet_eta, CleanJet_phi)")
-
-    df = df.Define("CleanJet_btag_notOverlap","CleanJet_btag[CleanJet_notOverlapping]")
-    
-    if isMC:
-        df = df.Define("CleanJet_btagSF_notOverlap","CleanJet_btag_SF[CleanJet_notOverlapping]")
-        df = df.Define("bTagSF","getBTagSF(CleanJet_btagSF_notOverlap)")
-        df = df.Redefine("weight","weight*bTagSF")
-
-    btagWP = 0.2783
-    df = df.Define("bTagged_jets",f"CleanJet_btag_notOverlap[CleanJet_btag_notOverlap > {btagWP}]")
-    df = df.Filter("bTagged_jets.size() == 0", "bVeto cut")
-    results["Cutflow_bVeto"] = df.Histo1D(("h_cutflow_bVeto","Cutflow bVeto",1,-0.5,0.5),"cutflow_stage","weight")
    
     if wtagger == "Nominal":
         df = df.Define("AnaFatJet_nom_wtag","FatJet_particleNet_WvsQCD[GoodFatJet_idx]")
@@ -184,13 +168,31 @@ def makeRDF(dataset_name, wtagger="Nominal"):
     #df = df.Filter("!isJetHole_ex","Is Hole Jet")
     results["Cutflow_notHoleJet"] = df.Histo1D(("h_cutflow_notHoleJet","Cutflow notHoleJet",1,-0.5,0.5),"cutflow_stage","weight")
     
+    df = df.Filter("AnaFatJet_pt>200","Jet pT cut")
+    results["Cutflow_Jet_Pt"] = df.Histo1D(("h_cutflow_Jet_Pt","Cutflow Jet Pt",1,-0.5,0.5),"cutflow_stage","weight")
+    
     df = df.Filter("(AnaFatJet_msoftdrop > 65 && AnaFatJet_msoftdrop < 105)","Mass cut")
     results["Cutflow_Jet_mass"] = df.Histo1D(("h_cutflow_Mass_cut","Cutflow Jet Mass",1,-0.5,0.5),"cutflow_stage","weight")
     
     results["Jet_pt"] = df.Histo1D(("h_Jet_pt","Jet pt",400,100,500),"AnaFatJet_pt","weight") 
-    df = df.Filter("AnaFatJet_pt>200","Jet pT cut")
-    results["Cutflow_Jet_Pt"] = df.Histo1D(("h_cutflow_Jet_Pt","Cutflow Jet Pt",1,-0.5,0.5),"cutflow_stage","weight")
     
+    df = df.Define("CleanJet_btag", "Take(Jet_btagDeepFlavB, CleanJet_jetIdx)")
+    if isMC:
+        df = df.Define("CleanJet_btag_SF","Take(Jet_btagSF_deepjet_shape,CleanJet_jetIdx)")
+    
+    df = df.Define("CleanJet_notOverlapping", "getCleanJetNotOverlapping(AnaFatJet_eta, AnaFatJet_phi, CleanJet_eta, CleanJet_phi, CleanJet_pt)")
+
+    df = df.Define("CleanJet_btag_notOverlap","CleanJet_btag[CleanJet_notOverlapping]")
+    
+    if isMC:
+        df = df.Define("CleanJet_btagSF_notOverlap","CleanJet_btag_SF[CleanJet_notOverlapping]")
+        df = df.Define("bTagSF","getBTagSF(CleanJet_btagSF_notOverlap)")
+        df = df.Redefine("weight","weight*bTagSF")
+
+    btagWP = 0.2783
+    df = df.Define("bTagged_jets",f"CleanJet_btag_notOverlap[CleanJet_btag_notOverlap > {btagWP}]")
+    df = df.Filter("bTagged_jets.size() == 0", "bVeto cut")
+    results["Cutflow_bVeto"] = df.Histo1D(("h_cutflow_bVeto","Cutflow bVeto",1,-0.5,0.5),"cutflow_stage","weight")
 
     if wtagger == "Nominal":
         results["Jet_Nominal_WTagger"] = df.Histo1D(("h_Nominal_WTagger", "WTagger Nominal", 10, 0, 1), "AnaFatJet_nom_wtag","weight")
@@ -208,27 +210,31 @@ def makeRDF(dataset_name, wtagger="Nominal"):
             df = df.Define("WTagger_SF","getWTaggerSF(AnaFatJet_pt)")
             df = df.Redefine("weight","weight*WTagger_SF")
     results["Cutflow_WTagger"] = df.Histo1D(("h_cutflow_WTagger","Cutflow WTagger",1,-0.5,0.5),"cutflow_stage","weight")
-    results["Lepton_pt_selection"] = df.Histo1D(("h_Lepton_pt_selection","Lepton pt",100,0,100),"Leading_Lepton_pt","weight")
-    results["Lepton_eta_selection"] = df.Histo1D(("h_Lepton_eta_selection", "Lepton eta", 12, -2.4, 2.4), "Leading_Lepton_eta", "weight")
-    results["Lepton_phi_selection"] = df.Histo1D(("h_Lepton_phi_selection", "Lepton phi", 32, -3.2, 3.2), "Leading_Lepton_phi", "weight")    
+    results["Lepton_pt_selection"] = df.Histo1D(("h_Lepton_pt_selection","Lepton pt",200,0,2000),"Leading_Lepton_pt","weight")
+    results["Lepton_eta_selection"] = df.Histo1D(("h_Lepton_eta_selection", "Lepton eta", 25, -2.5, 2.5), "Leading_Lepton_eta", "weight")
+    results["Lepton_phi_selection"] = df.Histo1D(("h_Lepton_phi_selection", "Lepton phi", 16, -3.2, 3.2), "Leading_Lepton_phi", "weight")    
 
-    results["Jet_pt_selection"] = df.Histo1D(("h_Jet_pt_selection","Jet pt",400,100,500),"AnaFatJet_pt","weight")
-    results["Jet_eta_selection"] = df.Histo1D(("h_Jet_eta_selection", "Jet eta", 12, -2.4, 2.4), "AnaFatJet_eta", "weight")
-    results["Jet_phi_selection"] = df.Histo1D(("h_Jet_phi_selection", "Jet phi", 32, -3.2, 3.2), "AnaFatJet_phi", "weight")    
+    results["Jet_pt_selection"] = df.Histo1D(("h_Jet_pt_selection","Jet pt",200,0,2000),"AnaFatJet_pt","weight")
+    results["Jet_eta_selection"] = df.Histo1D(("h_Jet_eta_selection", "Jet eta", 25, -2.5, 2.), "AnaFatJet_eta", "weight")
+    results["Jet_phi_selection"] = df.Histo1D(("h_Jet_phi_selection", "Jet phi", 16, -3.2, 3.2), "AnaFatJet_phi", "weight")    
+    results["Jet_mass_selection"] = df.Histo1D(("h_Jet_mass_selection","Jet mass",50,0,250),"AnaFatJet_msoftdrop","weight")
     if wtagger == "Nominal":
         results["Jet_Nominal_WTagger_selection"] = df.Histo1D(("h_Nominal_WTagger_selection", "WTagger Nominal", 10, 0, 1), "AnaFatJet_nom_wtag","weight")
     elif wtagger == "MD":
         results["Jet_MD_WTagger_selection"] = df.Histo1D(("h_MD_WTagger_selection", "WTagger MD", 10, 0, 1), "AnaFatJet_md_wtag","weight")
     
-    df = df.Define("H_vis_m","getHiggsCandidate(Leading_Lepton_pt,Leading_Lepton_eta,Leading_Lepton_phi,AnaFatJet_pt,AnaFatJet_eta,AnaFatJet_phi,AnaFatJet_mass,0)") 
-    df = df.Define("H_vis_pt","getHiggsCandidate(Leading_Lepton_pt,Leading_Lepton_eta,Leading_Lepton_phi,AnaFatJet_pt,AnaFatJet_eta,AnaFatJet_phi,AnaFatJet_mass,1)") 
-    df = df.Define("H_vis_eta","getHiggsCandidate(Leading_Lepton_pt,Leading_Lepton_eta,Leading_Lepton_phi,AnaFatJet_pt,AnaFatJet_eta,AnaFatJet_phi,AnaFatJet_mass,2)") 
-    df = df.Define("H_vis_phi","getHiggsCandidate(Leading_Lepton_pt,Leading_Lepton_eta,Leading_Lepton_phi,AnaFatJet_pt,AnaFatJet_eta,AnaFatJet_phi,AnaFatJet_mass,3)") 
-    results["Higgs_pt"] = df.Histo1D(("h_Higgs_pt","Higgs pt",100,0,1000),"H_vis_pt","weight")
-    results["Higgs_eta"] = df.Histo1D(("h_Higgs_eta", "Higgs eta", 12, -2.4, 2.4), "H_vis_eta", "weight")
-    results["Higgs_phi"] = df.Histo1D(("h_Higgs_phi", "Higgs phi", 32, -3.2, 3.2), "H_vis_phi", "weight")
-    results["Higgs_mass"] = df.Histo1D(("h_Higgs_mass", "Higgs mass", 100, 0, 1000), "H_vis_m", "weight")    
-    
+    df = df.Define("H_vis_m","getHiggsCandidate(Leading_Lepton_pt,Leading_Lepton_eta,Leading_Lepton_phi,AnaFatJet_pt,AnaFatJet_eta,AnaFatJet_phi,AnaFatJet_msoftdrop,0)") 
+    df = df.Define("H_vis_pt","getHiggsCandidate(Leading_Lepton_pt,Leading_Lepton_eta,Leading_Lepton_phi,AnaFatJet_pt,AnaFatJet_eta,AnaFatJet_phi,AnaFatJet_msoftdrop,1)") 
+    df = df.Define("H_vis_eta","getHiggsCandidate(Leading_Lepton_pt,Leading_Lepton_eta,Leading_Lepton_phi,AnaFatJet_pt,AnaFatJet_eta,AnaFatJet_phi,AnaFatJet_msoftdrop,2)") 
+    df = df.Define("H_vis_phi","getHiggsCandidate(Leading_Lepton_pt,Leading_Lepton_eta,Leading_Lepton_phi,AnaFatJet_pt,AnaFatJet_eta,AnaFatJet_phi,AnaFatJet_msoftdrop,3)") 
+    results["Higgs_pt"] = df.Histo1D(("h_Higgs_pt","Higgs pt",200,0,2000),"H_vis_pt","weight")
+    results["Higgs_eta"] = df.Histo1D(("h_Higgs_eta", "Higgs eta", 25, -2.5, 2.5), "H_vis_eta", "weight")
+    results["Higgs_phi"] = df.Histo1D(("h_Higgs_phi", "Higgs phi", 16, -3.2, 3.2), "H_vis_phi", "weight")
+    results["Higgs_mass"] = df.Histo1D(("h_Higgs_mass", "Higgs mass", 200, 0, 2000), "H_vis_m", "weight")    
+   
+    results["Met_pt"] = df.Histo1D(("h_MET_pt", "MET pt", 200,0, 2000), "PuppiMET_pt", "weight")
+    results["Met_phi"] = df.Histo1D(("h_MET_phi", "MET phi", 16, -3.2, 3.2), "PuppiMET_phi", "weight")
+
       
     report = df.Report()
     report.Print()
