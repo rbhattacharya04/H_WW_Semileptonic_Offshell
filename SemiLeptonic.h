@@ -18,24 +18,24 @@
 using namespace ROOT;
 using namespace ROOT::VecOps;
 
-std::vector<std::array<float,7>> _values = {};
-std::vector<std::array<float,9>> _wtagger_sfs = {};
+std::vector<std::array<double,7>> _values = {};
+std::vector<std::array<double,9>> _wtagger_sfs = {};
 
-inline bool isHole_ex(const float cand_eta, const float cand_phi){
+inline bool isHole_ex(const double cand_eta, const double cand_phi){
   bool Hole_ex = false;
   if ((cand_eta < -1.3 && cand_eta > -2.5) && (cand_phi > -1.57 && cand_phi < -0.87)) Hole_ex = true;
   return Hole_ex;
 
 }
 
-bool isAnalysisLepton(float Leading_Lepton_pdgId, float Leading_Lepton_pt, float Leading_Lepton_eta, float Leading_Lepton_phi){
+bool isAnalysisLepton(double Leading_Lepton_pdgId, double Leading_Lepton_pt, double Leading_Lepton_eta, double Leading_Lepton_phi){
   bool isAnaLepton = false;
   if(abs(Leading_Lepton_pdgId) == 11 && Leading_Lepton_pt > 35) isAnaLepton = true;
   if(abs(Leading_Lepton_pdgId) == 13 && Leading_Lepton_pt > 27) isAnaLepton = true;
   return isAnaLepton;
 }
 
-bool isVetoLepton(float nLepton, const RVec<Float_t>& Lepton_pt, const RVec<Int_t>& Lepton_isLoose){
+bool isVetoLepton(double nLepton, const RVec<Double_t>& Lepton_pt, const RVec<Int_t>& Lepton_isLoose){
   bool isVetoLepton = false;
   if (nLepton >1){
     for (int i=1; i<nLepton; i++){
@@ -46,10 +46,10 @@ bool isVetoLepton(float nLepton, const RVec<Float_t>& Lepton_pt, const RVec<Int_
 }
 
 inline double computeMWW(const UInt_t& nLHEPart, 
-                         const RVec<Float_t>& LHEPart_pt,
-                         const RVec<Float_t>& LHEPart_eta, 
-                         const RVec<Float_t>& LHEPart_phi,
-                         const RVec<Float_t>& LHEPart_mass,
+                         const RVec<Double_t>& LHEPart_pt,
+                         const RVec<Double_t>& LHEPart_eta, 
+                         const RVec<Double_t>& LHEPart_phi,
+                         const RVec<Double_t>& LHEPart_mass,
                          const RVec<Int_t>& LHEPart_pdgId,
                          const RVec<Int_t>& LHEPart_status) {
   
@@ -71,8 +71,8 @@ inline bool shouldApplyMWWCut(const std::string& sampleType) {
           (sampleType.find("sonly") != std::string::npos || sampleType.find("sand") != std::string::npos));
 }
 
-float getLeptonIdSF(const float& Leading_Lepton_pdgId, const bool& Leading_Lepton_isTight, const RVec<Float_t>& Lepton_tightElectron_mvaFall17V2Iso_WP90_TotSF, const RVec<Float_t>& Lepton_tightMuon_cut_Tight_HWWW_TotSF){
-  float weight = 1;
+double getLeptonIdSF(const double& Leading_Lepton_pdgId, const bool& Leading_Lepton_isTight, const RVec<Double_t>& Lepton_tightElectron_mvaFall17V2Iso_WP90_TotSF, const RVec<Double_t>& Lepton_tightMuon_cut_Tight_HWWW_TotSF){
+  double weight = 1;
   if (Leading_Lepton_isTight){
     if (abs(Leading_Lepton_pdgId) == 11) weight =  Lepton_tightElectron_mvaFall17V2Iso_WP90_TotSF[0];
     else if (abs(Leading_Lepton_pdgId) == 13) weight = Lepton_tightMuon_cut_Tight_HWWW_TotSF[0];
@@ -87,9 +87,9 @@ void initializeEleTriggerSF(){
 
     while(getline(inputFile, line)){
       std::stringstream ss(line);
-      std::array<float,7> line_values{};
+      std::array<double,7> line_values{};
       int i = 0;
-      float value;
+      double value;
       while (ss >> value)
       {
 	line_values[i] = value;
@@ -107,9 +107,9 @@ void initializeWTaggerSF(std::string file){
 
     while(getline(inputFile, line)){
       std::stringstream ss(line);
-      std::array<float,9> line_values{};
+      std::array<double,9> line_values{};
       int i = 0;
-      float value;
+      double value;
       while (ss >> value)
       {
         line_values[i] = value;
@@ -121,7 +121,7 @@ void initializeWTaggerSF(std::string file){
 }
 
 
-double getEleTriggerSF(float Lepton_pdgId, float Lepton_pt, float Lepton_eta){
+double getEleTriggerSF(double Lepton_pdgId, double Lepton_pt, double Lepton_eta){
   double weight = 1;
   if (abs(Lepton_pdgId) != 11) return weight;
   
@@ -142,7 +142,7 @@ double getEleTriggerSF(float Lepton_pdgId, float Lepton_pt, float Lepton_eta){
   return weight;
 }
 
-double getWTaggerSF(float Jet_pt,float year = 2018, float wp = 0.5){
+double getWTaggerSF(double Jet_pt,double year = 2018, double wp = 0.5){
   double weight = 1;
 
   //handle overflow
@@ -162,69 +162,72 @@ double getWTaggerSF(float Jet_pt,float year = 2018, float wp = 0.5){
   return weight;
 }
 
-double getTriggerSF(float Lepton_pdgId, float Ele_Trigger_SF, float Mu_Trigger_SF){
+double getTriggerSF(double Lepton_pdgId, double Ele_Trigger_SF, double Mu_Trigger_SF){
   double weight  = 1;
   if (abs(Lepton_pdgId) == 11) weight = Ele_Trigger_SF;
   else if (abs(Lepton_pdgId) == 13) weight = Mu_Trigger_SF;
   return weight;
 }
 
-float deltaPhi(float phi1, float phi2)
+double deltaPhi(double phi1, double phi2)
 {                                                        
-  float result = phi1 - phi2;
-  while (result > float(M_PI)) result -= float(2*M_PI);
-  while (result <= -float(M_PI)) result += float(2*M_PI);
+  double result = phi1 - phi2;
+  while (result >= double(M_PI)) result -= double(2*M_PI);
+  while (result < -double(M_PI)) result += double(2*M_PI);
   return result;
 }
 
-float deltaR2(float eta1, float phi1, float eta2, float phi2)
+double deltaR2(double eta1, double phi1, double eta2, double phi2)
 {
-  float deta = std::abs(eta1-eta2);
-  float dphi = deltaPhi(phi1,phi2);
+  double deta = std::abs(eta1-eta2);
+  double dphi = deltaPhi(phi1,phi2);
   return deta*deta + dphi*dphi;
 }
 
-float deltaR(float eta1, float phi1, float eta2, float phi2)
+double deltaR(double eta1, double phi1, double eta2, double phi2)
 {
   return std::sqrt(deltaR2(eta1,phi1,eta2,phi2));
 }
 
-int isGoodFatjet_indx(const RVec<Float_t>& FatJet_eta, const RVec<Float_t>& FatJet_phi,
+int isGoodFatjet_indx(const RVec<Double_t>& FatJet_eta, const RVec<Double_t>& FatJet_phi,
                           const RVec<Int_t>& FatJet_jetId,
-                          const RVec<Float_t>& Lepton_eta, const RVec<Float_t>& Lepton_phi)
+                          const RVec<Double_t>& Lepton_eta, const RVec<Double_t>& Lepton_phi)
 {
   int matchedJet = -1;
   for(unsigned int iJet = 0; iJet < FatJet_eta.size(); iJet++){
-    float dr = 999.;
+    double dr = 999.;
     if (FatJet_jetId.at(iJet) <= 0) continue;
     if (abs(FatJet_eta.at(iJet)) >= 2.4) continue;
     if (isHole_ex(FatJet_eta.at(iJet),FatJet_phi.at(iJet))) continue;
+    //matchedJet = iJet;
 
     for (unsigned int iLep = 0; iLep < Lepton_eta.size(); iLep++){
-      float tmp_dr  = deltaR(FatJet_eta.at(iJet), FatJet_phi.at(iJet),
-	  Lepton_eta.at(iLep), Lepton_phi.at(iLep));
-      if ( dr ) dr = tmp_dr;
+      double tmp_dr  = deltaR(FatJet_eta.at(iJet), FatJet_phi.at(iJet),
+    	  Lepton_eta.at(iLep), Lepton_phi.at(iLep));
+      if ( dr > tmp_dr ) dr = tmp_dr;
     }
-    if (dr >= 0.8) matchedJet = iJet;         
+    if (dr >= 0.8) return iJet;       
   }
   return matchedJet;
 }
 
 inline RVec<bool> getCleanJetNotOverlapping(
-    float FatJet_eta,
-    float FatJet_phi,
-    const RVec<Float_t>& CleanJet_eta,
-    const RVec<Float_t>& CleanJet_phi
+    double FatJet_eta,
+    double FatJet_phi,
+    const RVec<Double_t>& CleanJet_eta,
+    const RVec<Double_t>& CleanJet_phi,
+    const RVec<Double_t>& CleanJet_pt
 ) {
     RVec<bool> mask(CleanJet_eta.size(), false);
     for (size_t iJet = 0; iJet < CleanJet_eta.size(); ++iJet) {
-        float dr = deltaR(FatJet_eta, FatJet_phi, CleanJet_eta[iJet], CleanJet_phi[iJet]);
+	if (CleanJet_pt.at(iJet) < 20) continue;
+        double dr = deltaR(FatJet_eta, FatJet_phi, CleanJet_eta[iJet], CleanJet_phi[iJet]);
         mask[iJet] = (dr >= 0.8);
     }
     return mask;
 }
 
-inline double getBTagSF(const RVec<Float_t>& CleanJet_btagSF_notOverlap){
+inline double getBTagSF(const RVec<Double_t>& CleanJet_btagSF_notOverlap){
   double sf = 1.0;
   for (int i=0; i<CleanJet_btagSF_notOverlap.size(); i++){
     sf *= CleanJet_btagSF_notOverlap.at(i);
@@ -232,14 +235,11 @@ inline double getBTagSF(const RVec<Float_t>& CleanJet_btagSF_notOverlap){
   return sf;
 }
 
-
-
-
 inline double computePUJetIdSF(const UInt_t& nJet,
                                const RVec<Int_t>& Jet_jetId,
                                const RVec<Int_t>& Jet_electronIdx1,
                                const RVec<Int_t>& Jet_muonIdx1,
-                               const RVec<Float_t>& Jet_PUIDSF_loose,
+                               const RVec<Double_t>& Jet_PUIDSF_loose,
                                const Int_t& Leading_Lepton_electronIdx,
                                const Int_t& Leading_Lepton_muonIdx) {
 
@@ -253,19 +253,18 @@ inline double computePUJetIdSF(const UInt_t& nJet,
     return TMath::Exp(logSum);
 }
 
-
 // genjjMax -> Check carefully again if anything. is redundant
 //  for addition of Samples Weight and cuts
 // Computes the maximum mjj from all pairs of GenJets not overlapping with GenDressedLeptons
-inline float genMjjmax(const UInt_t& nGenJet,
-                       const RVec<Float_t>& GenJet_pt,
-                       const RVec<Float_t>& GenJet_eta,
-                       const RVec<Float_t>& GenJet_phi,
-                       const RVec<Float_t>& GenJet_mass,
+inline double genMjjmax(const UInt_t& nGenJet,
+                       const RVec<Double_t>& GenJet_pt,
+                       const RVec<Double_t>& GenJet_eta,
+                       const RVec<Double_t>& GenJet_phi,
+                       const RVec<Double_t>& GenJet_mass,
                        const UInt_t& nGenDressedLepton,
-                       const RVec<Float_t>& GenDressedLepton_pt,
-                       const RVec<Float_t>& GenDressedLepton_eta,
-                       const RVec<Float_t>& GenDressedLepton_phi) {
+                       const RVec<Double_t>& GenDressedLepton_pt,
+                       const RVec<Double_t>& GenDressedLepton_eta,
+                       const RVec<Double_t>& GenDressedLepton_phi) {
     std::vector<int> cleanJetIdx;
     // Select GenJets with pt > 30 and |eta| < 4.7, not overlapping with GenDressedLeptons (ΔR > 0.4)
     for (UInt_t iJ = 0; iJ < nGenJet; ++iJ) {
@@ -273,7 +272,7 @@ inline float genMjjmax(const UInt_t& nGenJet,
         bool overlap = false;
         for (UInt_t iL = 0; iL < nGenDressedLepton; ++iL) {
             if (GenDressedLepton_pt[iL] < 10.) continue;
-            float dr = deltaR(GenJet_eta[iJ], GenJet_phi[iJ], GenDressedLepton_eta[iL], GenDressedLepton_phi[iL]);
+            double dr = deltaR(GenJet_eta[iJ], GenJet_phi[iJ], GenDressedLepton_eta[iL], GenDressedLepton_phi[iL]);
             if (dr < 0.4) {
                 overlap = true;
                 break;
@@ -281,7 +280,7 @@ inline float genMjjmax(const UInt_t& nGenJet,
         }
         if (!overlap) cleanJetIdx.push_back(iJ);
     }
-    float mjjmax = -999.;
+    double mjjmax = -999.;
     // Loop over all pairs of clean jets and compute mjj
     for (size_t i = 0; i < cleanJetIdx.size(); ++i) {
         TLorentzVector j1;
@@ -289,7 +288,7 @@ inline float genMjjmax(const UInt_t& nGenJet,
         for (size_t j = i+1; j < cleanJetIdx.size(); ++j) {
             TLorentzVector j2;
             j2.SetPtEtaPhiM(GenJet_pt[cleanJetIdx[j]], GenJet_eta[cleanJetIdx[j]], GenJet_phi[cleanJetIdx[j]], GenJet_mass[cleanJetIdx[j]]);
-            float mjj = (j1 + j2).M();
+            double mjj = (j1 + j2).M();
             if (mjj > mjjmax) mjjmax = mjj;
         }
     }
@@ -297,22 +296,22 @@ inline float genMjjmax(const UInt_t& nGenJet,
 }
 
 // Returns true if Gen_ZGstar_mass > 0 and < 4 (gstarLow)
-inline bool gstarLow(float Gen_ZGstar_mass) {
+inline bool gstarLow(double Gen_ZGstar_mass) {
     return (Gen_ZGstar_mass > 0. && Gen_ZGstar_mass < 4.);
 }
 
 // Returns true if Gen_ZGstar_mass < 0 or > 4 (gstarHigh)
-inline bool gstarHigh(float Gen_ZGstar_mass) {
+inline bool gstarHigh(double Gen_ZGstar_mass) {
     return (Gen_ZGstar_mass < 0. || Gen_ZGstar_mass > 4.);
 }
 
 // DY photon filter: returns true if event passes the DY photon veto
 inline bool DYPhotonFilter(const UInt_t& nPhotonGen,
-                           const RVec<Float_t>& PhotonGen_pt,
-                           const RVec<Float_t>& PhotonGen_eta,
+                           const RVec<Double_t>& PhotonGen_pt,
+                           const RVec<Double_t>& PhotonGen_eta,
                            const RVec<Int_t>& PhotonGen_isPrompt,
                            const UInt_t& nLeptonGen,
-                           const RVec<Float_t>& LeptonGen_pt,
+                           const RVec<Double_t>& LeptonGen_pt,
                            const RVec<Int_t>& LeptonGen_isPrompt) {
     int nPromptPhoton = 0;
     int nPromptLepton = 0;
@@ -331,8 +330,8 @@ inline bool DYPhotonFilter(const UInt_t& nPhotonGen,
 
 // Wjets photon filter: returns true if there are NO prompt photons with pt > 10 and |eta| < 2.5
 inline bool WjetsPhotonFilter(const UInt_t& nPhotonGen,
-                              const RVec<Float_t>& PhotonGen_pt,
-                              const RVec<Float_t>& PhotonGen_eta,
+                              const RVec<Double_t>& PhotonGen_pt,
+                              const RVec<Double_t>& PhotonGen_eta,
                               const RVec<Int_t>& PhotonGen_isPrompt) {
     for (UInt_t i = 0; i < nPhotonGen; ++i) {
         if (PhotonGen_isPrompt[i] == 1 && PhotonGen_pt[i] > 10 && std::abs(PhotonGen_eta[i]) < 2.5)
@@ -371,7 +370,37 @@ inline int GenLHE(const ROOT::VecOps::RVec<int>& LHEPart_pdgId) {
     return sum == 0;
 }
 
-inline bool isHoleLepton(const float cand_eta, const float cand_phi, const float pdgId){
+inline float Top_pTrw(const ROOT::VecOps::RVec<int>& GenPart_pdgId,
+                      const ROOT::VecOps::RVec<unsigned int>& GenPart_statusFlags,
+                      const ROOT::VecOps::RVec<float>& GenPart_pt) {
+    float topGenPtOTF = 0.0;
+    float antitopGenPtOTF = 0.0;
+    for (size_t i = 0; i < GenPart_pdgId.size(); ++i) {
+        if (GenPart_pdgId[i] == 6 && ((GenPart_statusFlags[i] >> 13) & 1)) {
+            topGenPtOTF += GenPart_pt[i];
+        }
+        if (GenPart_pdgId[i] == -6 && ((GenPart_statusFlags[i] >> 13) & 1)) {
+            antitopGenPtOTF += GenPart_pt[i];
+        }
+    }
+    if (topGenPtOTF * antitopGenPtOTF > 0.) {
+        float w1 = 0.103 * std::exp(-0.0118 * topGenPtOTF) - 0.000134 * topGenPtOTF + 0.973;
+        float w2 = 0.103 * std::exp(-0.0118 * antitopGenPtOTF) - 0.000134 * antitopGenPtOTF + 0.973;
+        return std::sqrt(w1 * w2);
+    } else {
+        return 1.0;
+    }
+}
+
+inline int GenLHE(const ROOT::VecOps::RVec<int>& LHEPart_pdgId) {
+    int sum = 0;
+    for (auto pdgId : LHEPart_pdgId) {
+        if (pdgId == 21) sum++;
+    }
+    return sum == 0;
+}
+
+inline bool isHoleLepton(const double cand_eta, const double cand_phi, const double pdgId){
   if(abs(pdgId) == 13) return false;
   if(abs(pdgId) == 11) return isHole_ex(cand_eta,cand_phi);
 }

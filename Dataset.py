@@ -25,8 +25,13 @@ mc_path = "/eos/cms/store/group/phys_higgs/cmshww/amassiro/HWWNano/Summer20UL18_
 
 #Signal NanoAOD
 sig_path = "/eos/cms/store/group/phys_higgs/cmshww/amassiro/HWWNano/Sig"
+<<<<<<< HEAD
 
 dataset = {
+=======
+'''
+dataset = { 
+>>>>>>> master
     "data": {
         "files": list_files_in_folder("/eos/cms/store/group/phys_higgs/cmshww/amassiro/HWWNano/Run2018_UL2018_nAODv9_Full2018v9/DATAl1loose2018v9__DATACombJJLNu2018/"),
         "isMC": False,
@@ -439,6 +444,7 @@ dataset = {
         "sample_filters": "Lhe_mWW < 160"
     }
 }
+<<<<<<< HEAD
 
 
 
@@ -470,3 +476,17 @@ dataset = {
 
 
 
+=======
+'''
+dataset = {
+    "ggH_sonly_off": {
+        "files": list_files_in_folder(mc_path,'GluGluToWWToQQ_Sig_private'),
+        #"files": list_files_in_folder(sig_path,'ggHWW'),
+        "isMC": True,
+        "isSignal": True,
+        "isOffshell": True,
+        "sample_weights": None,
+        "sample_filters": None
+    }
+}
+>>>>>>> master
