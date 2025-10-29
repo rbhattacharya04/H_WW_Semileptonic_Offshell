@@ -21,7 +21,7 @@ def makeRDF(dataset_name, wtagger="Nominal"):
     #ROOT.RDF.Experimental.AddProgressBar(df_run)
     sum_result = df_run.Sum("genEventSumw")
     genEventSumw = sum_result.GetValue()
-    print(f"genEventSumw = {genEventSumw}")
+    #print(f"genEventSumw = {genEventSumw}")
     h1 = ROOT.TH1F("genEventWeight", "Example Histogram;X-axis Label;Y-axis Label", 5, -0.5, 4.5)
     h1.SetBinContent(1, genEventSumw)
  
@@ -39,7 +39,7 @@ def makeRDF(dataset_name, wtagger="Nominal"):
     #print(f"No. of events : {count.GetValue()}")
     if isMC:
         sum_genWeight = df.Sum("genWeight")
-        print(f"sum_genWeight = {sum_genWeight.GetValue()}")
+        #print(f"sum_genWeight = {sum_genWeight.GetValue()}")
         h1.SetBinContent(2,sum_genWeight.GetValue())
 
         df = df.Define("DYPhotonFilter", "DYPhotonFilter(nPhotonGen, PhotonGen_pt, PhotonGen_eta, PhotonGen_isPrompt, nLeptonGen, LeptonGen_pt, LeptonGen_isPrompt)")
