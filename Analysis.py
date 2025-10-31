@@ -11,6 +11,7 @@ def makeRDF(dataset_name, wtagger="Nominal"):
     print(dataset_name)
     results = {}
     # Get files and isMC from dataset
+    #sample_dict = dataset[dataset_name]
     files = dataset[dataset_name]["files"]
     isMC = dataset[dataset_name]["isMC"]
     isSignal = dataset[dataset_name]["isSignal"]
@@ -26,6 +27,7 @@ def makeRDF(dataset_name, wtagger="Nominal"):
         h1 = ROOT.TH1F("genEventWeight", "Example Histogram;X-axis Label;Y-axis Label", 5, -0.5, 4.5)
         h1.SetBinContent(1, genEventSumw)
  
+    
     df = ROOT.RDataFrame("Events", files)
     #df = df.Range(1000)
     ROOT.RDF.Experimental.AddProgressBar(df)
@@ -40,15 +42,14 @@ def makeRDF(dataset_name, wtagger="Nominal"):
     if isMC:
         sum_genWeight = df.Sum("genWeight")
 
-        #df = df.Define("DYPhotonWeight", "float(DYPhotonFilter(nPhotonGen, PhotonGen_pt, PhotonGen_eta, PhotonGen_isPrompt, nLeptonGen, LeptonGen_pt, LeptonGen_isPrompt))")
-        #df = df.Define("WWGenWeight", "float(!((mjjGen_max > 150) && GenLHE))")
-        #df = df.Define("VgWeight", "float(Gen_ZGstar_mass <= 0)")
-        #df = df.Define("gstarLowWeight", "0.94 * float(gstarLow(Gen_ZGstar_mass))")
-        #df = df.Define("gstarHighWeight", "1.14 * float(gstarHigh(Gen_ZGstar_mass))")
         df = df.Define("DYPhotonFilter", "DYPhotonFilter(nPhotonGen, PhotonGen_pt, PhotonGen_eta, PhotonGen_isPrompt, nLeptonGen, LeptonGen_pt, LeptonGen_isPrompt)")
-        #df = df.Define("passWjetsPhotonFilter", "WjetsPhotonFilter(nPhotonGen, PhotonGen_pt, PhotonGen_eta, PhotonGen_isPrompt)")
-        #df = df.Define("Top_pTrw","Top_pTrw(topGenPtOTF, antitopGenPtOTF)")
-
+        df = df.Define("WjetsPhotonFilter", "WjetsPhotonFilter(nPhotonGen, PhotonGen_pt, PhotonGen_eta, PhotonGen_isPrompt)")
+        df = df.Define("mjjGenmax","genMjjmax(nGenJet, GenJet_pt, GenJet_eta, GenJet_phi, GenJet_mass, nGenDressedLepton, GenDressedLepton_pt, GenDressedLepton_eta, GenDressedLepton_phi)")
+        df = df.Define("Top_pTrw", "Top_pTrw(GenPart_pdgId, GenPart_statusFlags, GenPart_pt)")
+        df = df.Define("gstarLowWeight", "0.94 * float(gstarLow(Gen_ZGstar_mass))")
+        df = df.Define("gstarHighWeight", "1.14 * float(gstarHigh(Gen_ZGstar_mass))")
+        df = df.Define("VgWeight", "gstarLowWeight + gstarHighWeight")
+        df = df.Define("GenLHE", "GenLHE(LHEPart_pdgId)")
         if isSignal:
             df = df.Define("Lhe_mWW", "computeMWW(nLHEPart, LHEPart_pt, LHEPart_eta, LHEPart_phi, LHEPart_mass, LHEPart_pdgId, LHEPart_status)")
             if isOffshell:
@@ -121,6 +122,8 @@ def makeRDF(dataset_name, wtagger="Nominal"):
     
     df = df.Define("isVetoLepton","isVetoLepton(nLepton,Lepton_pt,Lepton_isLoose)")
     df = df.Filter("!isVetoLepton", "Veto Lepton Cut")
+
+    df = df.Filter("PuppiMET_pt > 30", "PuppiMET_pt > 30 GeV cut")
    
     results["Cutflow_Veto_Lepton"] = df.Histo1D(("h_cutflow_Veto_Lepton","Cutflow Veto Lepton",1,-0.5,0.5),"cutflow_stage","weight")
 
@@ -273,12 +276,11 @@ elif args.run == "sig+sbi":
 elif args.run == "sig":
     print("Wrong3")
     #histograms["ggH_sonly_off"] = makeRDF("ggH_sonly_off",args.wtag)
-    histograms["ggH_bonly_off"] = makeRDF("ggH_bonly_off",args.wtag)
     #histograms["ST_s-channel"] = makeRDF("ST_s-channel",args.wtag)
     #histograms["ST_t-channel_antitop"] = makeRDF("ST_t-channel_antitop",args.wtag)
     #histograms["ST_t-channel_top"] = makeRDF("ST_t-channel_top",args.wtag)
     #histograms["ST_tW_antitop"] = makeRDF("ST_tW_antitop",args.wtag)
-    #histograms["ST_tW_top"] = makeRDF("ST_tW_top",args.wtag)
+    histograms["ST_tW_top"] = makeRDF("ST_tW_top",args.wtag)
 else:
     print("Right")
     for keys in dataset:
@@ -301,3 +303,6 @@ for key1 in histograms:
         histograms[key1][key2].Write()
     output_file.cd()
 output_file.Close()
+
+
+

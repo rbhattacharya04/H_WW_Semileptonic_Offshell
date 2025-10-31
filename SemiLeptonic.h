@@ -350,6 +350,8 @@ inline bool DYPhotonFilter(const UInt_t& nPhotonGen,
     return !(nPromptPhoton > 0 && nPromptLepton >= 2);
 }
 
+
+// Wjets photon filter: returns true if there are NO prompt photons with pt > 10 and |eta| < 2.5
 inline bool WjetsPhotonFilter(const UInt_t& nPhotonGen,
                               const RVec<Double_t>& PhotonGen_pt,
                               const RVec<Double_t>& PhotonGen_eta,
@@ -364,4 +366,16 @@ inline bool WjetsPhotonFilter(const UInt_t& nPhotonGen,
 bool isHoleLepton(const double cand_eta, const double cand_phi, const double pdgId){
   if(abs(pdgId) == 13) return false;
   if(abs(pdgId) == 11) return isHole_ex(cand_eta,cand_phi);
+}
+
+inline double getHiggsCandidate (const Float_t& Lepton_pt, const Float_t& Lepton_eta, const Float_t& Lepton_phi,
+				const Float_t& Jet_pt, const Float_t& Jet_eta, const Float_t& Jet_phi, const Float_t& Jet_mass, int var){
+  ROOT::Math::PtEtaPhiMVector Lepton = ROOT::Math::PtEtaPhiMVector(Lepton_pt, Lepton_eta,
+                                      Lepton_phi, 0);
+  ROOT::Math::PtEtaPhiMVector Jet = ROOT::Math::PtEtaPhiMVector(Jet_pt, Jet_eta, Jet_phi, Jet_mass);
+  ROOT::Math::PtEtaPhiMVector H_vis = Lepton + Jet;
+  if(var == 0 ) return H_vis.M();
+  if(var == 1) return H_vis.Pt();
+  if(var == 2) return H_vis.Eta();
+  if(var == 3) return H_vis.Phi();
 }
