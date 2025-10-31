@@ -16,17 +16,19 @@ def makeRDF(dataset_name, wtagger="Nominal"):
     isSignal = dataset[dataset_name]["isSignal"]
     isOffshell = dataset[dataset_name]["isOffshell"]
     #files = ["/afs/cern.ch/work/r/rbhattac/public/DY_v9_NanoAOD/13D0AD97-6B32-CB4C-BA87-5E37BA4CF20E.root"]
-    df_run = ROOT.RDataFrame("Runs", files)
-    #ROOT.RDF.Experimental.AddProgressBar(df_run)
-    sum_result = df_run.Sum("genEventSumw")
-    genEventSumw = sum_result.GetValue()
-    print(f"genEventSumw = {genEventSumw}")
-    h1 = ROOT.TH1F("genEventWeight", "Example Histogram;X-axis Label;Y-axis Label", 5, -0.5, 4.5)
-    h1.SetBinContent(1, genEventSumw)
+    if isMC:
+        df_run = ROOT.RDataFrame("Runs", files)
+        ROOT.RDF.Experimental.AddProgressBar(df_run)
+        sum_result = df_run.Sum("genEventSumw")
+        genEventSumw = sum_result.GetValue()
+        #genEventSumw = 109864.115
+        print(f"genEventSumw = {genEventSumw}")
+        h1 = ROOT.TH1F("genEventWeight", "Example Histogram;X-axis Label;Y-axis Label", 5, -0.5, 4.5)
+        h1.SetBinContent(1, genEventSumw)
  
     df = ROOT.RDataFrame("Events", files)
     #df = df.Range(1000)
-    #ROOT.RDF.Experimental.AddProgressBar(df)
+    ROOT.RDF.Experimental.AddProgressBar(df)
     #XS_Weight_cal = (59.7*1000*0.775)/genEventSumw
     if isSignal: 
         XS_Weight_cal = (1000*0.4357)/genEventSumw
@@ -37,8 +39,6 @@ def makeRDF(dataset_name, wtagger="Nominal"):
     #print(f"No. of events : {count.GetValue()}")
     if isMC:
         sum_genWeight = df.Sum("genWeight")
-        print(f"sum_genWeight = {sum_genWeight.GetValue()}")
-        h1.SetBinContent(2,sum_genWeight.GetValue())
 
         #df = df.Define("DYPhotonWeight", "float(DYPhotonFilter(nPhotonGen, PhotonGen_pt, PhotonGen_eta, PhotonGen_isPrompt, nLeptonGen, LeptonGen_pt, LeptonGen_isPrompt))")
         #df = df.Define("WWGenWeight", "float(!((mjjGen_max > 150) && GenLHE))")
@@ -63,7 +63,6 @@ def makeRDF(dataset_name, wtagger="Nominal"):
         else:
             df = df.Redefine("weight","weight*XSWeight*METFilter_MC*puWeight*EMTFbug_veto")
 
-    results["genWeightSum"] = h1
    
     ## CHECK ?? 
     # Apply sample-specific weight/filter
@@ -210,14 +209,14 @@ def makeRDF(dataset_name, wtagger="Nominal"):
             df = df.Define("WTagger_SF","getWTaggerSF(AnaFatJet_pt)")
             df = df.Redefine("weight","weight*WTagger_SF")
     results["Cutflow_WTagger"] = df.Histo1D(("h_cutflow_WTagger","Cutflow WTagger",1,-0.5,0.5),"cutflow_stage","weight")
-    results["Lepton_pt_selection"] = df.Histo1D(("h_Lepton_pt_selection","Lepton pt",200,0,2000),"Leading_Lepton_pt","weight")
+    results["Lepton_pt_selection"] = df.Histo1D(("h_Lepton_pt_selection","Lepton pt",50,0,1000),"Leading_Lepton_pt","weight")
     results["Lepton_eta_selection"] = df.Histo1D(("h_Lepton_eta_selection", "Lepton eta", 25, -2.5, 2.5), "Leading_Lepton_eta", "weight")
     results["Lepton_phi_selection"] = df.Histo1D(("h_Lepton_phi_selection", "Lepton phi", 16, -3.2, 3.2), "Leading_Lepton_phi", "weight")    
 
-    results["Jet_pt_selection"] = df.Histo1D(("h_Jet_pt_selection","Jet pt",200,0,2000),"AnaFatJet_pt","weight")
-    results["Jet_eta_selection"] = df.Histo1D(("h_Jet_eta_selection", "Jet eta", 25, -2.5, 2.), "AnaFatJet_eta", "weight")
+    results["Jet_pt_selection"] = df.Histo1D(("h_Jet_pt_selection","Jet pt",50,0,1000),"AnaFatJet_pt","weight")
+    results["Jet_eta_selection"] = df.Histo1D(("h_Jet_eta_selection", "Jet eta", 25, -2.5, 2.5), "AnaFatJet_eta", "weight")
     results["Jet_phi_selection"] = df.Histo1D(("h_Jet_phi_selection", "Jet phi", 16, -3.2, 3.2), "AnaFatJet_phi", "weight")    
-    results["Jet_mass_selection"] = df.Histo1D(("h_Jet_mass_selection","Jet mass",50,0,250),"AnaFatJet_msoftdrop","weight")
+    results["Jet_mass_selection"] = df.Histo1D(("h_Jet_mass_selection","Jet mass",25,0,250),"AnaFatJet_msoftdrop","weight")
     if wtagger == "Nominal":
         results["Jet_Nominal_WTagger_selection"] = df.Histo1D(("h_Nominal_WTagger_selection", "WTagger Nominal", 10, 0, 1), "AnaFatJet_nom_wtag","weight")
     elif wtagger == "MD":
@@ -227,19 +226,24 @@ def makeRDF(dataset_name, wtagger="Nominal"):
     df = df.Define("H_vis_pt","getHiggsCandidate(Leading_Lepton_pt,Leading_Lepton_eta,Leading_Lepton_phi,AnaFatJet_pt,AnaFatJet_eta,AnaFatJet_phi,AnaFatJet_msoftdrop,1)") 
     df = df.Define("H_vis_eta","getHiggsCandidate(Leading_Lepton_pt,Leading_Lepton_eta,Leading_Lepton_phi,AnaFatJet_pt,AnaFatJet_eta,AnaFatJet_phi,AnaFatJet_msoftdrop,2)") 
     df = df.Define("H_vis_phi","getHiggsCandidate(Leading_Lepton_pt,Leading_Lepton_eta,Leading_Lepton_phi,AnaFatJet_pt,AnaFatJet_eta,AnaFatJet_phi,AnaFatJet_msoftdrop,3)") 
-    results["Higgs_pt"] = df.Histo1D(("h_Higgs_pt","Higgs pt",200,0,2000),"H_vis_pt","weight")
+    results["Higgs_pt"] = df.Histo1D(("h_Higgs_pt","Higgs pt",50,0,1000),"H_vis_pt","weight")
     results["Higgs_eta"] = df.Histo1D(("h_Higgs_eta", "Higgs eta", 25, -2.5, 2.5), "H_vis_eta", "weight")
     results["Higgs_phi"] = df.Histo1D(("h_Higgs_phi", "Higgs phi", 16, -3.2, 3.2), "H_vis_phi", "weight")
-    results["Higgs_mass"] = df.Histo1D(("h_Higgs_mass", "Higgs mass", 200, 0, 2000), "H_vis_m", "weight")    
+    results["Higgs_mass"] = df.Histo1D(("h_Higgs_mass", "Higgs mass", 75, 0, 1500), "H_vis_m", "weight")    
    
-    results["Met_pt"] = df.Histo1D(("h_MET_pt", "MET pt", 200,0, 2000), "PuppiMET_pt", "weight")
+    results["Met_pt"] = df.Histo1D(("h_MET_pt", "MET pt", 50,0, 1000), "PuppiMET_pt", "weight")
     results["Met_phi"] = df.Histo1D(("h_MET_phi", "MET phi", 16, -3.2, 3.2), "PuppiMET_phi", "weight")
 
+    if isMC:
+        sum_genWeight_value = sum_genWeight.GetValue()
+        print(f"sum_genWeight = {sum_genWeight_value}")
+        h1.SetBinContent(2,sum_genWeight_value)
+        results["genWeightSum"] = h1
+        sum_Weight = df.Sum("weight")
+        print(f"sum_Weight = {sum_Weight.GetValue()}")
       
     report = df.Report()
-    report.Print()
-    
-    
+    report.Print() 
  
     return results
 
@@ -268,7 +272,8 @@ elif args.run == "sig+sbi":
 #    histograms["ggH_sand_off"] = makeRDF("ggH_sand_off",args.wtag)
 elif args.run == "sig":
     print("Wrong3")
-    histograms["ggH_sonly_off"] = makeRDF("ggH_sonly_off",args.wtag)
+    #histograms["ggH_sonly_off"] = makeRDF("ggH_sonly_off",args.wtag)
+    histograms["ggH_bonly_off"] = makeRDF("ggH_bonly_off",args.wtag)
     #histograms["ST_s-channel"] = makeRDF("ST_s-channel",args.wtag)
     #histograms["ST_t-channel_antitop"] = makeRDF("ST_t-channel_antitop",args.wtag)
     #histograms["ST_t-channel_top"] = makeRDF("ST_t-channel_top",args.wtag)

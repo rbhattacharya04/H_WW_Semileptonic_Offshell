@@ -26,7 +26,7 @@ root_file = ROOT.TFile.Open("output.root","READ")
 
 #pd.set_option('display.float_format', '{:.2f}'.format)
 #bkg_samples = ["TTToSemiLeptonic","TTTo2L2Nu","TTWJetsToLNu","ST_s-channel","ST_t-channel_antitop","ST_t-channel_top","ST_tW_antitop","ST_tW_top"]
-bkg_samples = []
+bkg_samples = ["ggH_bonly_off"]
 cutflow_bkg_ind = {}
 default_value = {}
 cutflow_bkg_ind_weighted = dict.fromkeys(bkg_samples,default_value)
@@ -42,9 +42,9 @@ for cut in cutflows:
         print(cutflow_bkg_ind_weighted[f"{bkg}"][f"{cut}"]["value"])
     cutflow_bkg[f"{cut}"] = {"value" : bkg_nentries}
     cutflow_bkg_weighted[f"{cut}"] = {"value" : lumi*bkg_integral}
-    histo_signal = root_file.Get(f"ggH_sonly_off/{cut}")
-    cutflow_signal[f"{cut}"] = {"value" : histo_signal.GetEntries()}
-    cutflow_signal_weighted[f"{cut}"] = {"value" : lumi*histo_signal.Integral()}
+    #histo_signal = root_file.Get(f"ggH_sonly_off/{cut}")
+    #cutflow_signal[f"{cut}"] = {"value" : histo_signal.GetEntries()}
+    #cutflow_signal_weighted[f"{cut}"] = {"value" : lumi*histo_signal.Integral()}
     #histo_signal = root_file.Get(f"VVV/{cut}")
     #cutflow_signal[f"{cut}"] = {"value" : histo_signal.GetEntries()}
     #cutflow_signal_weighted[f"{cut}"] = {"value" : lumi*histo_signal.Integral()}
@@ -52,7 +52,7 @@ for cut in cutflows:
     #cutflow_sbi[f"{cut}"] = {"value" : histo_sbi.GetEntries()}
     #cutflow_sbi_weighted[f"{cut}"] = {"value" : histo_sbi.Integral()}
 
-
+'''
 df_signal = pd.DataFrame.from_dict(cutflow_signal,orient='index')
 df_signal['rel_eff'] = df_signal['value']/df_signal['value'].shift(1)
 start = df_signal['value'].iloc[0]
@@ -70,7 +70,7 @@ start = df_signal_weighted['value'].iloc[0]
 df_signal_weighted['abs_eff'] = df_signal_weighted['value']/start
 print("Signal_CutFlow_Weighted")
 print(df_signal_weighted)
-
+'''
 #df_signal = pd.DataFrame.from_dict(cutflow_signal,orient='index')
 #df_signal['cum_eff'] = df_signal['value']/df_signal['value'].shift(1)
 #start = df_signal['value'].iloc[0]

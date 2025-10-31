@@ -21,7 +21,7 @@ using namespace ROOT::VecOps;
 std::vector<std::array<double,7>> _values = {};
 std::vector<std::array<double,9>> _wtagger_sfs = {};
 
-inline bool isHole_ex(const double cand_eta, const double cand_phi){
+bool isHole_ex(const double cand_eta, const double cand_phi){
   bool Hole_ex = false;
   if ((cand_eta < -1.3 && cand_eta > -2.5) && (cand_phi > -1.57 && cand_phi < -0.87)) Hole_ex = true;
   return Hole_ex;
@@ -35,7 +35,7 @@ bool isAnalysisLepton(double Leading_Lepton_pdgId, double Leading_Lepton_pt, dou
   return isAnaLepton;
 }
 
-bool isVetoLepton(double nLepton, const RVec<Double_t>& Lepton_pt, const RVec<Int_t>& Lepton_isLoose){
+inline bool isVetoLepton(double nLepton, const RVec<Double_t>& Lepton_pt, const RVec<Int_t>& Lepton_isLoose){
   bool isVetoLepton = false;
   if (nLepton >1){
     for (int i=1; i<nLepton; i++){
@@ -66,12 +66,12 @@ inline double computeMWW(const UInt_t& nLHEPart,
 }
 
 // Smart mWW cut function - only applies cut for specific sample types
-inline bool shouldApplyMWWCut(const std::string& sampleType) {
+/*bool shouldApplyMWWCut(const std::string& sampleType) {
   return (sampleType.find("off") != std::string::npos && 
           (sampleType.find("sonly") != std::string::npos || sampleType.find("sand") != std::string::npos));
-}
+}*/
 
-double getLeptonIdSF(const double& Leading_Lepton_pdgId, const bool& Leading_Lepton_isTight, const RVec<Double_t>& Lepton_tightElectron_mvaFall17V2Iso_WP90_TotSF, const RVec<Double_t>& Lepton_tightMuon_cut_Tight_HWWW_TotSF){
+inline double getLeptonIdSF(const double& Leading_Lepton_pdgId, const bool& Leading_Lepton_isTight, const RVec<Double_t>& Lepton_tightElectron_mvaFall17V2Iso_WP90_TotSF, const RVec<Double_t>& Lepton_tightMuon_cut_Tight_HWWW_TotSF){
   double weight = 1;
   if (Leading_Lepton_isTight){
     if (abs(Leading_Lepton_pdgId) == 11) weight =  Lepton_tightElectron_mvaFall17V2Iso_WP90_TotSF[0];
@@ -189,7 +189,7 @@ double deltaR(double eta1, double phi1, double eta2, double phi2)
   return std::sqrt(deltaR2(eta1,phi1,eta2,phi2));
 }
 
-int isGoodFatjet_indx(const RVec<Double_t>& FatJet_eta, const RVec<Double_t>& FatJet_phi,
+inline int isGoodFatjet_indx(const RVec<Double_t>& FatJet_eta, const RVec<Double_t>& FatJet_phi,
                           const RVec<Int_t>& FatJet_jetId,
                           const RVec<Double_t>& Lepton_eta, const RVec<Double_t>& Lepton_phi)
 {
@@ -253,7 +253,7 @@ inline double computePUJetIdSF(const UInt_t& nJet,
     return TMath::Exp(logSum);
 }
 
-inline double getHiggsCandidate (const Double_t& Lepton_pt, const Double_t& Lepton_eta, const Double_t& Lepton_phi,
+double getHiggsCandidate (const Double_t& Lepton_pt, const Double_t& Lepton_eta, const Double_t& Lepton_phi,
 				const Double_t& Jet_pt, const Double_t& Jet_eta, const Double_t& Jet_phi, const Double_t& Jet_mass, int var){
   ROOT::Math::PtEtaPhiMVector Lepton = ROOT::Math::PtEtaPhiMVector(Lepton_pt, Lepton_eta,
                                       Lepton_phi, 0);
@@ -308,17 +308,17 @@ inline double genMjjmax(const UInt_t& nGenJet,
 }
 
 // Returns true if Gen_ZGstar_mass > 0 and < 4 (gstarLow)
-inline bool gstarLow(double Gen_ZGstar_mass) {
+bool gstarLow(double Gen_ZGstar_mass) {
     return (Gen_ZGstar_mass > 0. && Gen_ZGstar_mass < 4.);
 }
 
 // Returns true if Gen_ZGstar_mass < 0 or > 4 (gstarHigh)
-inline bool gstarHigh(double Gen_ZGstar_mass) {
+bool gstarHigh(double Gen_ZGstar_mass) {
     return (Gen_ZGstar_mass < 0. || Gen_ZGstar_mass > 4.);
 }
 
 // Top pT reweighting function (Top PAG)
-inline double Top_pTrw(double topGenPtOTF, double antitopGenPtOTF) {
+double Top_pTrw(double topGenPtOTF, double antitopGenPtOTF) {
     if (topGenPtOTF * antitopGenPtOTF > 0.) {
         double w1 = 0.103 * std::exp(-0.0118 * topGenPtOTF) - 0.000134 * topGenPtOTF + 0.973;
         double w2 = 0.103 * std::exp(-0.0118 * antitopGenPtOTF) - 0.000134 * antitopGenPtOTF + 0.973;
@@ -361,7 +361,7 @@ inline bool WjetsPhotonFilter(const UInt_t& nPhotonGen,
     return true; // Event passes filter if no such photon exists
 }
 
-inline bool isHoleLepton(const double cand_eta, const double cand_phi, const double pdgId){
+bool isHoleLepton(const double cand_eta, const double cand_phi, const double pdgId){
   if(abs(pdgId) == 13) return false;
   if(abs(pdgId) == 11) return isHole_ex(cand_eta,cand_phi);
 }

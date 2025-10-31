@@ -36,7 +36,7 @@ mc_path = "/eos/cms/store/group/phys_higgs/cmshww/amassiro/HWWNano/Summer20UL18_
 
 #Signal NanoAOD
 sig_path = "/eos/cms/store/group/phys_higgs/cmshww/amassiro/HWWNano/Sig"
-'''
+
 dataset = { 
     "data": {
         "files": list_files_in_folder("/eos/cms/store/group/phys_higgs/cmshww/amassiro/HWWNano/Run2018_UL2018_nAODv9_Full2018v9/DATAl1loose2018v9__DATACombJJLNu2018/"),
@@ -340,3 +340,4 @@ dataset = {
         "sample_filters": None
     }
 }
+'''
