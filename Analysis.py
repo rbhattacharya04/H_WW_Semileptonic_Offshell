@@ -42,14 +42,19 @@ def makeRDF(dataset_name, wtagger="Nominal"):
     if isMC:
         sum_genWeight = df.Sum("genWeight")
 
-        df = df.Define("DYPhotonFilter", "DYPhotonFilter(nPhotonGen, PhotonGen_pt, PhotonGen_eta, PhotonGen_isPrompt, nLeptonGen, LeptonGen_pt, LeptonGen_isPrompt)")
-        df = df.Define("WjetsPhotonFilter", "WjetsPhotonFilter(nPhotonGen, PhotonGen_pt, PhotonGen_eta, PhotonGen_isPrompt)")
-        df = df.Define("mjjGenmax","genMjjmax(nGenJet, GenJet_pt, GenJet_eta, GenJet_phi, GenJet_mass, nGenDressedLepton, GenDressedLepton_pt, GenDressedLepton_eta, GenDressedLepton_phi)")
-        df = df.Define("Top_pTrw", "Top_pTrw(GenPart_pdgId, GenPart_statusFlags, GenPart_pt)")
-        df = df.Define("gstarLowWeight", "0.94 * float(gstarLow(Gen_ZGstar_mass))")
-        df = df.Define("gstarHighWeight", "1.14 * float(gstarHigh(Gen_ZGstar_mass))")
-        df = df.Define("VgWeight", "gstarLowWeight + gstarHighWeight")
-        df = df.Define("GenLHE", "GenLHE(LHEPart_pdgId)")
+        if not isSignal:
+            df = df.Define("DYPhotonFilter", "DYPhotonFilter(nPhotonGen, PhotonGen_pt, PhotonGen_eta, PhotonGen_isPrompt, nLeptonGen, LeptonGen_pt, LeptonGen_isPrompt)")
+            df = df.Define("WjetsPhotonFilter", "WjetsPhotonFilter(nPhotonGen, PhotonGen_pt, PhotonGen_eta, PhotonGen_isPrompt)")
+            df = df.Define("mjjGenmax","genMjjmax(nGenJet, GenJet_pt, GenJet_eta, GenJet_phi, GenJet_mass, nGenDressedLepton, GenDressedLepton_pt, GenDressedLepton_eta, GenDressedLepton_phi)")
+            df = df.Define("Top_pTrw", "Top_pTrw(GenPart_pdgId, GenPart_statusFlags, GenPart_pt)")
+            df = df.Define("gstarLowWeight", "0.94 * float(gstarLow(Gen_ZGstar_mass))")
+            df = df.Define("gstarHighWeight", "1.14 * float(gstarHigh(Gen_ZGstar_mass))")
+            df = df.Define("VgWeight", "gstarLowWeight + gstarHighWeight")
+            if dataset_name not in ["ZZ", "WZ"]:
+                df = df.Define("GenLHE", "GenLHE(LHEPart_pdgId)")
+            if dataset_name in ["ggH_bonly_on", "ggH_bonly_off"]:
+                df = df.Define("Lhe_mWW", "computeMWW(nLHEPart, LHEPart_pt, LHEPart_eta, LHEPart_phi, LHEPart_mass, LHEPart_pdgId, LHEPart_status)")
+        
         if isSignal:
             df = df.Define("Lhe_mWW", "computeMWW(nLHEPart, LHEPart_pt, LHEPart_eta, LHEPart_phi, LHEPart_mass, LHEPart_pdgId, LHEPart_status)")
             if isOffshell:
@@ -275,12 +280,12 @@ elif args.run == "sig+sbi":
 #    histograms["ggH_sand_off"] = makeRDF("ggH_sand_off",args.wtag)
 elif args.run == "sig":
     print("Wrong3")
-    #histograms["ggH_sonly_off"] = makeRDF("ggH_sonly_off",args.wtag)
+    histograms["ggH_sonly_off"] = makeRDF("ggH_sonly_off",args.wtag)
     #histograms["ST_s-channel"] = makeRDF("ST_s-channel",args.wtag)
     #histograms["ST_t-channel_antitop"] = makeRDF("ST_t-channel_antitop",args.wtag)
     #histograms["ST_t-channel_top"] = makeRDF("ST_t-channel_top",args.wtag)
     #histograms["ST_tW_antitop"] = makeRDF("ST_tW_antitop",args.wtag)
-    histograms["ST_tW_top"] = makeRDF("ST_tW_top",args.wtag)
+    #histograms["ST_tW_top"] = makeRDF("ST_tW_top",args.wtag)
 else:
     print("Right")
     for keys in dataset:

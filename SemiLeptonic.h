@@ -379,3 +379,33 @@ inline double getHiggsCandidate (const Float_t& Lepton_pt, const Float_t& Lepton
   if(var == 2) return H_vis.Eta();
   if(var == 3) return H_vis.Phi();
 }
+
+float Top_pTrw(const ROOT::VecOps::RVec<int>& GenPart_pdgId,
+                      const ROOT::VecOps::RVec<unsigned int>& GenPart_statusFlags,
+                      const ROOT::VecOps::RVec<float>& GenPart_pt) {
+    float topGenPtOTF = 0.0;
+    float antitopGenPtOTF = 0.0;
+    for (size_t i = 0; i < GenPart_pdgId.size(); ++i) {
+        if (GenPart_pdgId[i] == 6 && ((GenPart_statusFlags[i] >> 13) & 1)) {
+            topGenPtOTF += GenPart_pt[i];
+        }
+        if (GenPart_pdgId[i] == -6 && ((GenPart_statusFlags[i] >> 13) & 1)) {
+            antitopGenPtOTF += GenPart_pt[i];
+        }
+    }
+    if (topGenPtOTF * antitopGenPtOTF > 0.) {
+        float w1 = 0.103 * std::exp(-0.0118 * topGenPtOTF) - 0.000134 * topGenPtOTF + 0.973;
+        float w2 = 0.103 * std::exp(-0.0118 * antitopGenPtOTF) - 0.000134 * antitopGenPtOTF + 0.973;
+        return std::sqrt(w1 * w2);
+    } else {
+        return 1.0;
+    }
+}
+
+int GenLHE(const ROOT::VecOps::RVec<int>& LHEPart_pdgId) {
+    int sum = 0;
+    for (auto pdgId : LHEPart_pdgId) {
+        if (pdgId == 21) sum++;
+    }
+    return sum == 0;
+}

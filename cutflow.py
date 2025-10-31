@@ -26,11 +26,13 @@ root_file = ROOT.TFile.Open("output.root","READ")
 
 #pd.set_option('display.float_format', '{:.2f}'.format)
 #bkg_samples = ["TTToSemiLeptonic","TTTo2L2Nu","TTWJetsToLNu","ST_s-channel","ST_t-channel_antitop","ST_t-channel_top","ST_tW_antitop","ST_tW_top"]
-bkg_samples = ["ggH_bonly_off"]
+bkg_samples = []
 cutflow_bkg_ind = {}
 default_value = {}
 cutflow_bkg_ind_weighted = dict.fromkeys(bkg_samples,default_value)
 for cut in cutflows:
+    print(f"{cut}")
+    '''
     bkg_integral = 0
     bkg_nentries = 0
     for bkg in bkg_samples:
@@ -42,9 +44,10 @@ for cut in cutflows:
         print(cutflow_bkg_ind_weighted[f"{bkg}"][f"{cut}"]["value"])
     cutflow_bkg[f"{cut}"] = {"value" : bkg_nentries}
     cutflow_bkg_weighted[f"{cut}"] = {"value" : lumi*bkg_integral}
-    #histo_signal = root_file.Get(f"ggH_sonly_off/{cut}")
-    #cutflow_signal[f"{cut}"] = {"value" : histo_signal.GetEntries()}
-    #cutflow_signal_weighted[f"{cut}"] = {"value" : lumi*histo_signal.Integral()}
+    '''
+    histo_signal = root_file.Get(f"ggH_sonly_off/{cut}")
+    cutflow_signal[f"{cut}"] = {"value" : histo_signal.GetEntries()}
+    cutflow_signal_weighted[f"{cut}"] = {"value" : lumi*histo_signal.Integral()}
     #histo_signal = root_file.Get(f"VVV/{cut}")
     #cutflow_signal[f"{cut}"] = {"value" : histo_signal.GetEntries()}
     #cutflow_signal_weighted[f"{cut}"] = {"value" : lumi*histo_signal.Integral()}
@@ -52,7 +55,7 @@ for cut in cutflows:
     #cutflow_sbi[f"{cut}"] = {"value" : histo_sbi.GetEntries()}
     #cutflow_sbi_weighted[f"{cut}"] = {"value" : histo_sbi.Integral()}
 
-'''
+
 df_signal = pd.DataFrame.from_dict(cutflow_signal,orient='index')
 df_signal['rel_eff'] = df_signal['value']/df_signal['value'].shift(1)
 start = df_signal['value'].iloc[0]
@@ -70,7 +73,7 @@ start = df_signal_weighted['value'].iloc[0]
 df_signal_weighted['abs_eff'] = df_signal_weighted['value']/start
 print("Signal_CutFlow_Weighted")
 print(df_signal_weighted)
-'''
+
 #df_signal = pd.DataFrame.from_dict(cutflow_signal,orient='index')
 #df_signal['cum_eff'] = df_signal['value']/df_signal['value'].shift(1)
 #start = df_signal['value'].iloc[0]
@@ -85,19 +88,19 @@ print(df_signal_weighted)
 #print("DY_CutFlow_Weighted")
 #print(df_signal_weighted)
 
-df_bkg = pd.DataFrame.from_dict(cutflow_bkg,orient='index')
-df_bkg['cum_eff'] = df_bkg['value']/df_bkg['value'].shift(1)
-start = df_bkg['value'].iloc[0]
-df_bkg['abs_eff'] = df_bkg['value']/start
-print("Bkg_CutFlow")
-print(df_bkg)
+#df_bkg = pd.DataFrame.from_dict(cutflow_bkg,orient='index')
+#df_bkg['cum_eff'] = df_bkg['value']/df_bkg['value'].shift(1)
+#start = df_bkg['value'].iloc[0]
+#df_bkg['abs_eff'] = df_bkg['value']/start
+#print("Bkg_CutFlow")
+#print(df_bkg)
 
-df_bkg_weighted = pd.DataFrame.from_dict(cutflow_bkg_weighted,orient='index')
-df_bkg_weighted['rel_eff'] = df_bkg_weighted['value']/df_bkg_weighted['value'].shift(1)
-start = df_bkg_weighted['value'].iloc[0]
-df_bkg_weighted['abs_eff'] = df_bkg_weighted['value']/start
-print("Bkg_CutFlow_weighted")
-print(df_bkg_weighted)
+#df_bkg_weighted = pd.DataFrame.from_dict(cutflow_bkg_weighted,orient='index')
+#df_bkg_weighted['rel_eff'] = df_bkg_weighted['value']/df_bkg_weighted['value'].shift(1)
+#start = df_bkg_weighted['value'].iloc[0]
+#df_bkg_weighted['abs_eff'] = df_bkg_weighted['value']/start
+#print("Bkg_CutFlow_weighted")
+#print(df_bkg_weighted)
 
 #df_sbi = pd.DataFrame.from_dict(cutflow_sbi,orient='index')
 #df_sbi['cum_eff'] = df_sbi['value']/df_sbi['value'].shift(1)
@@ -112,13 +115,13 @@ print(df_bkg_weighted)
 #df_sbi_weighted['abs_eff'] = df_sbi_weighted['value']/start
 #print("SBI_CutFlow_Weighted")
 #print(df_sbi_weighted)
-print(cutflow_bkg_ind_weighted)
+#print(cutflow_bkg_ind_weighted)
 
-for keys in cutflow_bkg_ind_weighted:
-    cutflow = cutflow_bkg_ind_weighted[keys]
-    df = pd.DataFrame.from_dict(cutflow,orient='index')
-    df['rel_eff'] = df['value']/df['value'].shift(1)
-    start = df['value'].iloc[0]
-    df['abs_eff'] = df['value']/start
-    print(f"Cutflow for {keys}")
-    print(df)
+#for keys in cutflow_bkg_ind_weighted:
+#    cutflow = cutflow_bkg_ind_weighted[keys]
+#    df = pd.DataFrame.from_dict(cutflow,orient='index')
+#    df['rel_eff'] = df['value']/df['value'].shift(1)
+#    start = df['value'].iloc[0]
+#    df['abs_eff'] = df['value']/start
+#    print(f"Cutflow for {keys}")
+#    print(df)
