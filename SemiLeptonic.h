@@ -217,14 +217,14 @@ inline RVec<bool> getCleanJetNotOverlapping(
     const RVec<Double_t>& CleanJet_eta,
     const RVec<Double_t>& CleanJet_phi,
     const RVec<Double_t>& CleanJet_pt
-) {
-    RVec<bool> mask(CleanJet_eta.size(), false);
-    for (size_t iJet = 0; iJet < CleanJet_eta.size(); ++iJet) {
-	if (CleanJet_pt.at(iJet) < 20) continue;
-        double dr = deltaR(FatJet_eta, FatJet_phi, CleanJet_eta[iJet], CleanJet_phi[iJet]);
-        mask[iJet] = (dr >= 0.8);
-    }
-    return mask;
+    ) {
+  RVec<bool> mask(CleanJet_eta.size(), false);
+  for (size_t iJet = 0; iJet < CleanJet_eta.size(); ++iJet) {
+    if (CleanJet_pt.at(iJet) < 20) continue;
+    double dr = deltaR(FatJet_eta, FatJet_phi, CleanJet_eta[iJet], CleanJet_phi[iJet]);
+    mask[iJet] = (dr >= 0.8);
+  }
+  return mask;
 }
 
 inline double getBTagSF(const RVec<Double_t>& CleanJet_btagSF_notOverlap){

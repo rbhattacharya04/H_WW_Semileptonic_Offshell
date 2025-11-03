@@ -4,7 +4,7 @@ import argparse
 
 import ROOT
 ROOT.gInterpreter.ProcessLine(".O3")
-ROOT.EnableImplicitMT()
+ROOT.EnableImplicitMT(10)
 ROOT.gInterpreter.Declare('#include "SemiLeptonic.h"')
 
 def makeRDF(dataset_name, wtagger="Nominal"):
@@ -72,10 +72,11 @@ def makeRDF(dataset_name, wtagger="Nominal"):
    
     ## CHECK ?? 
     # Apply sample-specific weight/filter
-    if dataset[dataset_name]["sample_weights"]:
-        df = df.Redefine("weight", f"weight*({dataset[dataset_name]['sample_weights']})")
-    if dataset[dataset_name]["sample_filters"]:
-        df = df.Filter(dataset[dataset_name]["sample_filters"])
+    if isMC:
+        if dataset[dataset_name]["sample_weights"]:
+            df = df.Redefine("weight", f"weight*({dataset[dataset_name]['sample_weights']})")
+        if dataset[dataset_name]["sample_filters"]:
+            df = df.Filter(dataset[dataset_name]["sample_filters"])
 
  
     df = df.Define("cutflow_stage","0")
@@ -127,9 +128,6 @@ def makeRDF(dataset_name, wtagger="Nominal"):
     
     df = df.Define("isVetoLepton","isVetoLepton(nLepton,Lepton_pt,Lepton_isLoose)")
     df = df.Filter("!isVetoLepton", "Veto Lepton Cut")
-
-    df = df.Filter("PuppiMET_pt > 30", "PuppiMET_pt > 30 GeV cut")
-   
     results["Cutflow_Veto_Lepton"] = df.Histo1D(("h_cutflow_Veto_Lepton","Cutflow Veto Lepton",1,-0.5,0.5),"cutflow_stage","weight")
 
     df = df.Filter("PuppiMET_pt > 30", "PuppiMET_pt > 30 GeV cut")
@@ -285,7 +283,15 @@ elif args.run == "sig":
     #histograms["ST_t-channel_antitop"] = makeRDF("ST_t-channel_antitop",args.wtag)
     #histograms["ST_t-channel_top"] = makeRDF("ST_t-channel_top",args.wtag)
     #histograms["ST_tW_antitop"] = makeRDF("ST_tW_antitop",args.wtag)
-    #histograms["ST_tW_top"] = makeRDF("ST_tW_top",args.wtag)
+    #histograms["WJetsToLNu-LO"] = makeRDF("WJetsToLNu-LO",args.wtag)
+    #histograms["WJetsToLNu_HT70To100"] = makeRDF("WJetsToLNu_HT70To100",args.wtag)
+    #histograms["WJetsToLNu_HT100To200"] = makeRDF("WJetsToLNu_HT100To200",args.wtag)
+    #histograms["WJetsToLNu_HT200To400"] = makeRDF("WJetsToLNu_HT200To400",args.wtag)
+    #histograms["WJetsToLNu_HT400To600"] = makeRDF("WJetsToLNu_HT400To600",args.wtag)
+    #histograms["WJetsToLNu_HT600To800"] = makeRDF("WJetsToLNu_HT600To800",args.wtag)
+    #histograms["WJetsToLNu_HT800To1200"] = makeRDF("WJetsToLNu_HT800To1200",args.wtag)
+    #histograms["WJetsToLNu_HT1200To2500"] = makeRDF("WJetsToLNu_HT1200To2500",args.wtag)
+    #histograms["WJetsToLNu_HT2500ToInf"] = makeRDF("WJetsToLNu_HT2500ToInf",args.wtag)
 else:
     print("Right")
     for keys in dataset:
