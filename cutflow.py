@@ -22,11 +22,12 @@ cutflow_sbi_weighted = {}
 
 lumi = 59.7
 #root_file = ROOT.TFile.Open("output.root","READ")
-root_file = ROOT.TFile.Open("output.root","READ")
+root_file = ROOT.TFile.Open("output_all_no_weights.root","READ")
 
 #pd.set_option('display.float_format', '{:.2f}'.format)
 #bkg_samples = ["TTToSemiLeptonic","TTTo2L2Nu","TTWJetsToLNu","ST_s-channel","ST_t-channel_antitop","ST_t-channel_top","ST_tW_antitop","ST_tW_top"]
-bkg_samples = ["WJetsToLNu-LO", "WJetsToLNu_HT70To100", "WJetsToLNu_HT100To200", "WJetsToLNu_HT200To400", "WJetsToLNu_HT400To600" , "WJetsToLNu_HT600To800" , "WJetsToLNu_HT800To1200", "WJetsToLNu_HT1200To2500", "WJetsToLNu_HT2500ToInf"]
+bkg_samples = ["ST_tW_top"]
+#bkg_samples = ["WJetsToLNu-LO", "WJetsToLNu_HT70To100", "WJetsToLNu_HT100To200", "WJetsToLNu_HT200To400", "WJetsToLNu_HT400To600" , "WJetsToLNu_HT600To800" , "WJetsToLNu_HT800To1200", "WJetsToLNu_HT1200To2500", "WJetsToLNu_HT2500ToInf"]
 cutflow_bkg_ind = {}
 default_value = {}
 cutflow_bkg_ind_weighted = dict.fromkeys(bkg_samples,default_value)
@@ -43,9 +44,9 @@ for cut in cutflows:
         #print(cutflow_bkg_ind_weighted[f"{bkg}"][f"{cut}"]["value"])
     cutflow_bkg[f"{cut}"] = {"value" : bkg_nentries}
     cutflow_bkg_weighted[f"{cut}"] = {"value" : lumi*bkg_integral}
-    #histo_signal = root_file.Get(f"ggH_sonly_off/{cut}")
-    #cutflow_signal[f"{cut}"] = {"value" : histo_signal.GetEntries()}
-    #cutflow_signal_weighted[f"{cut}"] = {"value" : lumi*histo_signal.Integral()}
+    histo_signal = root_file.Get(f"ggH_sonly_off/{cut}")
+    cutflow_signal[f"{cut}"] = {"value" : histo_signal.GetEntries()}
+    cutflow_signal_weighted[f"{cut}"] = {"value" : lumi*histo_signal.Integral()}
     #histo_signal = root_file.Get(f"VVV/{cut}")
     #cutflow_signal[f"{cut}"] = {"value" : histo_signal.GetEntries()}
     #cutflow_signal_weighted[f"{cut}"] = {"value" : lumi*histo_signal.Integral()}
@@ -61,16 +62,16 @@ for cut in cutflows:
 #print("Signal_CutFlow")
 #print(df_signal)
 
-#df_signal_weighted = pd.DataFrame.from_dict(cutflow_signal_weighted,orient='index')
-#df_signal_weighted = df_signal_weighted.rename(index={"h_cutflow_Start": "h_cutflow_TightLepton_METFilter_EMTFBugVeto"})
-#start_value = {"h_start": {"value" : 26011.29}}
-#new_row_df = pd.DataFrame.from_dict(start_value,orient='index')
-#df_signal_weighted = pd.concat([new_row_df,df_signal_weighted])
-#df_signal_weighted['rel_eff'] = df_signal_weighted['value']/df_signal_weighted['value'].shift(1)
-#start = df_signal_weighted['value'].iloc[0]
-#df_signal_weighted['abs_eff'] = df_signal_weighted['value']/start
-#print("Signal_CutFlow_Weighted")
-#print(df_signal_weighted)
+df_signal_weighted = pd.DataFrame.from_dict(cutflow_signal_weighted,orient='index')
+df_signal_weighted = df_signal_weighted.rename(index={"h_cutflow_Start": "h_cutflow_TightLepton_METFilter_EMTFBugVeto"})
+start_value = {"h_start": {"value" : 26011.29}}
+new_row_df = pd.DataFrame.from_dict(start_value,orient='index')
+df_signal_weighted = pd.concat([new_row_df,df_signal_weighted])
+df_signal_weighted['rel_eff'] = df_signal_weighted['value']/df_signal_weighted['value'].shift(1)
+start = df_signal_weighted['value'].iloc[0]
+df_signal_weighted['abs_eff'] = df_signal_weighted['value']/start
+print("Signal_CutFlow_Weighted")
+print(df_signal_weighted)
 
 #df_signal = pd.DataFrame.from_dict(cutflow_signal,orient='index')
 #df_signal['cum_eff'] = df_signal['value']/df_signal['value'].shift(1)

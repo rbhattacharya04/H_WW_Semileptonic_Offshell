@@ -37,7 +37,7 @@ dataset = {
     },
 
     "DYJetsToLL_M-50": {
-        "files": list_files_in_folder(mc_path, "DYJetsToLL_M-50"),
+        "files": list_files_in_folder(mc_path, "DYJetsToLL_M-50__"),
         "isMC": True,
         "isSignal": False,
         "isOffshell": False,
@@ -191,17 +191,6 @@ dataset = {
         "sample_filters": None
     },
 
-    "WW": {
-        "files": (
-            list_files_in_folder(mc_path, "WmToLNu_WmTo2J_QCD") +
-            list_files_in_folder(mc_path, "WpToLNu_WpTo2J_QCD")
-        ),
-        "isMC": True,
-        "isSignal": False,
-        "isOffshell": False,
-        "sample_weights": "(!((mjjGenmax > 150) * GenLHE))", #fix it later
-        "sample_filters": None
-    },
     "ggH_bonly_on": {
         "files": list_files_in_folder(mc_path, "GluGluToWWToQQ_Cont_private"),
         "isMC": True,
@@ -218,6 +207,17 @@ dataset = {
         "sample_weights": "Lhe_mWW > 160", #fix it later
         "sample_filters": None
     },
+    "WW": {
+        "files": (
+            list_files_in_folder(mc_path, "WmToLNu_WmTo2J_QCD") +
+            list_files_in_folder(mc_path, "WpToLNu_WpTo2J_QCD")
+        ),
+        "isMC": True,
+        "isSignal": False,
+        "isOffshell": False,
+        "sample_weights": "(!((mjjGenmax > 150) * GenLHE))", #fix it later
+        "sample_filters": None
+    },
     "qqWWqq": {
         "files": (
             list_files_in_folder(mc_path, "WpTo2J_WmToLNu_QCD") +
@@ -227,6 +227,19 @@ dataset = {
         "isSignal": False,
         "isOffshell": False,
         "sample_weights": "(mjjGenmax > 150) * (GenLHE)", #added sample weight
+        "sample_filters": None
+    },
+    "WWewk": {
+        "files": (
+            list_files_in_folder(mc_path, "WpTo2J_WmToLNu") +
+            list_files_in_folder(mc_path, "WpToLNu_WmTo2J") +
+            list_files_in_folder(mc_path, "WpToLNu_WpTo2J") +
+            list_files_in_folder(mc_path, "WmToLNu_WmTo2J")
+        ),
+        "isMC": True,
+        "isSignal": False,
+        "isOffshell": False,
+        "sample_weights": None, #no sample weight for WWewk
         "sample_filters": None
     },
     "WJetsToLNu-LO": {
@@ -301,17 +314,18 @@ dataset = {
         "sample_weights": "2.7948",
         "sample_filters": "WjetsPhotonFilter"
     },
-    "Vg": {
-        "files": (
-            list_files_in_folder(mc_path, "WGToLNuG") +
-            list_files_in_folder(mc_path, "ZGToLLG")
-        ),
-        "isMC": True,
-        "isSignal": False,
-        "isOffshell": False,
-        "sample_weights": "(!(Gen_ZGstar_mass > 0))",
-        "sample_filters": None
-    },
+    # Removed it, Same sample counted twice
+    #"Vg": {
+    #    "files": (
+    #        list_files_in_folder(mc_path, "WGToLNuG") +
+    #        list_files_in_folder(mc_path, "ZGToLLG")
+    #    ),
+    #    "isMC": True,
+    #    "isSignal": False,
+    #    "isOffshell": False,
+    #    "sample_weights": "(!(Gen_ZGstar_mass > 0))",
+    #    "sample_filters": None
+    #},
     "WGToLNuG": {
         "files": list_files_in_folder(mc_path, "WGToLNuG"),
         "isMC": True,
@@ -328,14 +342,15 @@ dataset = {
         "sample_weights": "VgWeight * (Gen_ZGstar_mass > 0)",  # *0.448 XS correction can be added if needed
         "sample_filters": None
     },
-    "WZTo3LNu_mllmin0p1": {
-        "files": list_files_in_folder(mc_path, "WZTo3LNu_mllmin0p1"),
-        "isMC": True,
-        "isSignal": False,
-        "isOffshell": False,
-        "sample_weights": "VgWeight * (Gen_ZGstar_mass > 0.1)",
-        "sample_filters": None
-    },
+    # Remove it, we have inclusive WZ
+    #"WZTo3LNu_mllmin0p1": {
+    #    "files": list_files_in_folder(mc_path, "WZTo3LNu_mllmin0p1"),
+    #    "isMC": True,
+    #    "isSignal": False,
+    #    "isOffshell": False,
+    #    "sample_weights": "VgWeight * (Gen_ZGstar_mass > 0.1)",
+    #    "sample_filters": None
+    #},
 
     "ZZ": {
         "files": list_files_in_folder(mc_path, "ZZ"),
@@ -353,22 +368,23 @@ dataset = {
         "sample_weights": "(mjjGenmax < 150)",  # Uses mjjGenmax defined in Analysis.py
         "sample_filters": None
     },
-    "WmToLNu_ZTo2J_QCD": {
-        "files": list_files_in_folder(mc_path, "WmToLNu_ZTo2J_QCD"),
-        "isMC": True,
-        "isSignal": False,
-        "isOffshell": False,
-        "sample_weights": "(mjjGenmax > 150)",  # Uses mjjGenmax defined in Analysis.py
-        "sample_filters": None
-    },
-    "WpToLNu_ZTo2J_QCD": {
-        "files": list_files_in_folder(mc_path, "WpToLNu_ZTo2J_QCD"),
-        "isMC": True,
-        "isSignal": False,
-        "isOffshell": False,
-        "sample_weights": "(mjjGenmax > 150)",  # Uses mjjGenmax defined in Analysis.py
-        "sample_filters": None
-    },
+    # We already have WZ inclusive sample
+    #"WmToLNu_ZTo2J_QCD": {
+    #    "files": list_files_in_folder(mc_path, "WmToLNu_ZTo2J_QCD"),
+    #    "isMC": True,
+    #    "isSignal": False,
+    #    "isOffshell": False,
+    #    "sample_weights": "(mjjGenmax > 150)",  # Uses mjjGenmax defined in Analysis.py
+    #    "sample_filters": None
+    #},
+    #"WpToLNu_ZTo2J_QCD": {
+    #    "files": list_files_in_folder(mc_path, "WpToLNu_ZTo2J_QCD"),
+    #    "isMC": True,
+    #    "isSignal": False,
+    #    "isOffshell": False,
+    #    "sample_weights": "(mjjGenmax > 150)",  # Uses mjjGenmax defined in Analysis.py
+    #    "sample_filters": None
+    #},
     "VVV": {
         "files": (
             list_files_in_folder(mc_path, "ZZZ") +
@@ -380,19 +396,6 @@ dataset = {
         "isSignal": False,
         "isOffshell": False,
         "sample_weights": None, #no sample weight for VVV
-        "sample_filters": None
-    },
-    "WWewk": {
-        "files": (
-            list_files_in_folder(mc_path, "WpTo2J_WmToLNu") +
-            list_files_in_folder(mc_path, "WpToLNu_WmTo2J") +
-            list_files_in_folder(mc_path, "WpToLNu_WpTo2J") +
-            list_files_in_folder(mc_path, "WmToLNu_WmTo2J")
-        ),
-        "isMC": True,
-        "isSignal": False,
-        "isOffshell": False,
-        "sample_weights": None, #no sample weight for WWewk
         "sample_filters": None
     },
     "VBF_V": {

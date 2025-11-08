@@ -72,11 +72,11 @@ def makeRDF(dataset_name, wtagger="Nominal"):
    
     ## CHECK ?? 
     # Apply sample-specific weight/filter
-    if isMC:
-        if dataset[dataset_name]["sample_weights"]:
-            df = df.Redefine("weight", f"weight*({dataset[dataset_name]['sample_weights']})")
-        if dataset[dataset_name]["sample_filters"]:
-            df = df.Filter(dataset[dataset_name]["sample_filters"])
+    #if isMC:
+    #    if dataset[dataset_name]["sample_weights"]:
+    #        df = df.Redefine("weight", f"weight*({dataset[dataset_name]['sample_weights']})")
+    #    if dataset[dataset_name]["sample_filters"]:
+    #        df = df.Filter(dataset[dataset_name]["sample_filters"])
 
  
     df = df.Define("cutflow_stage","0")
@@ -205,7 +205,7 @@ def makeRDF(dataset_name, wtagger="Nominal"):
         results["Jet_MD_WTagger"] = df.Histo1D(("h_MD_WTagger", "WTagger MD", 10, 0, 1), "AnaFatJet_md_wtag","weight") 
     
     if wtagger == "Nominal":
-        df = df.Filter("AnaFatJet_nom_wtag > 0.94","Wtagger Nominal 0p5 cut")
+        #df = df.Filter("AnaFatJet_nom_wtag > 0.94","Wtagger Nominal 0p5 cut")
         if isMC:
             df = df.Define("WTagger_SF","getWTaggerSF(AnaFatJet_pt)")
             df = df.Redefine("weight","weight*WTagger_SF")
@@ -279,19 +279,6 @@ elif args.run == "sig+sbi":
 elif args.run == "sig":
     print("Wrong3")
     histograms["ggH_sonly_off"] = makeRDF("ggH_sonly_off",args.wtag)
-    #histograms["ST_s-channel"] = makeRDF("ST_s-channel",args.wtag)
-    #histograms["ST_t-channel_antitop"] = makeRDF("ST_t-channel_antitop",args.wtag)
-    #histograms["ST_t-channel_top"] = makeRDF("ST_t-channel_top",args.wtag)
-    #histograms["ST_tW_antitop"] = makeRDF("ST_tW_antitop",args.wtag)
-    #histograms["WJetsToLNu-LO"] = makeRDF("WJetsToLNu-LO",args.wtag)
-    #histograms["WJetsToLNu_HT70To100"] = makeRDF("WJetsToLNu_HT70To100",args.wtag)
-    #histograms["WJetsToLNu_HT100To200"] = makeRDF("WJetsToLNu_HT100To200",args.wtag)
-    #histograms["WJetsToLNu_HT200To400"] = makeRDF("WJetsToLNu_HT200To400",args.wtag)
-    #histograms["WJetsToLNu_HT400To600"] = makeRDF("WJetsToLNu_HT400To600",args.wtag)
-    #histograms["WJetsToLNu_HT600To800"] = makeRDF("WJetsToLNu_HT600To800",args.wtag)
-    #histograms["WJetsToLNu_HT800To1200"] = makeRDF("WJetsToLNu_HT800To1200",args.wtag)
-    #histograms["WJetsToLNu_HT1200To2500"] = makeRDF("WJetsToLNu_HT1200To2500",args.wtag)
-    #histograms["WJetsToLNu_HT2500ToInf"] = makeRDF("WJetsToLNu_HT2500ToInf",args.wtag)
 else:
     print("Right")
     for keys in dataset:
