@@ -54,6 +54,10 @@ def makeRDF(dataset_name, wtagger="Nominal"):
                 df = df.Define("GenLHE", "GenLHE(LHEPart_pdgId)")
             if dataset_name in ["ggH_bonly_on", "ggH_bonly_off"]:
                 df = df.Define("Lhe_mWW", "computeMWW(nLHEPart, LHEPart_pt, LHEPart_eta, LHEPart_phi, LHEPart_mass, LHEPart_pdgId, LHEPart_status)")
+                if dataset_name in ["ggH_bonly_off"]:
+                    df = df.Filter("Lhe_mWW > 160")
+                else:
+                    df = df.Filter("Lhe_mWW < 160")
         
         if isSignal:
             df = df.Define("Lhe_mWW", "computeMWW(nLHEPart, LHEPart_pt, LHEPart_eta, LHEPart_phi, LHEPart_mass, LHEPart_pdgId, LHEPart_status)")
@@ -205,7 +209,7 @@ def makeRDF(dataset_name, wtagger="Nominal"):
         results["Jet_MD_WTagger"] = df.Histo1D(("h_MD_WTagger", "WTagger MD", 10, 0, 1), "AnaFatJet_md_wtag","weight") 
     
     if wtagger == "Nominal":
-        #df = df.Filter("AnaFatJet_nom_wtag > 0.94","Wtagger Nominal 0p5 cut")
+        df = df.Filter("AnaFatJet_nom_wtag > 0.94","Wtagger Nominal 0p5 cut")
         if isMC:
             df = df.Define("WTagger_SF","getWTaggerSF(AnaFatJet_pt)")
             df = df.Redefine("weight","weight*WTagger_SF")
@@ -279,6 +283,7 @@ elif args.run == "sig+sbi":
 elif args.run == "sig":
     print("Wrong3")
     histograms["ggH_sonly_off"] = makeRDF("ggH_sonly_off",args.wtag)
+    histograms["ggH_bonly_off"] = makeRDF("ggH_bonly_off",args.wtag)
 else:
     print("Right")
     for keys in dataset:
@@ -293,7 +298,7 @@ else:
     # Use pickle.dump() to save the dictionary
 #    pickle.dump(histograms, f)
 
-output_file = ROOT.TFile("output.root", "RECREATE")
+output_file = ROOT.TFile("output_bonly_off_8_Nov.root", "RECREATE")
 for key1 in histograms:
     new_directory = output_file.mkdir(key1)
     new_directory.cd()
