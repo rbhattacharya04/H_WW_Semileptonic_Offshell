@@ -4,7 +4,7 @@ import argparse
 
 import ROOT
 ROOT.gInterpreter.ProcessLine(".O3")
-ROOT.EnableImplicitMT(10)
+ROOT.EnableImplicitMT()
 ROOT.gInterpreter.Declare('#include "SemiLeptonic.h"')
 
 def makeRDF(dataset_name, wtagger="Nominal"):
