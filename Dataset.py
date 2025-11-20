@@ -191,33 +191,34 @@ dataset = {
         "sample_filters": None
     },
 
-    "ggH_bonly_on": {
-        "files": list_files_in_folder(mc_path, "GluGluToWWToQQ_Cont_private"),
-        "isMC": True,
-        "isSignal": False,
-        "isOffshell": False,
-        "sample_weights": "Lhe_mWW<160", #fix it later
-        "sample_filters": None
-    },
+    #"ggH_bonly_on": {
+    #    "files": list_files_in_folder(mc_path, "GluGluToWWToQQ_Cont_private"),
+    #    "isMC": True,
+    #    "isSignal": False,
+    #    "isOffshell": False,
+    #    "sample_weights": "Lhe_mWW<160", #fix it later
+    #    "sample_filters": None
+    #},
     "ggH_bonly_off": {
         "files": list_files_in_folder(mc_path, "GluGluToWWToQQ_Cont_private"),
         "isMC": True,
         "isSignal": False,
         "isOffshell": True,
         "sample_weights": "Lhe_mWW > 160", #fix it later
-        "sample_filters": None
+        "sample_filters": None,
+        "xsec": 7.13784
     },
-    "WW": {
-        "files": (
-            list_files_in_folder(mc_path, "WmToLNu_WmTo2J_QCD") +
-            list_files_in_folder(mc_path, "WpToLNu_WpTo2J_QCD")
-        ),
-        "isMC": True,
-        "isSignal": False,
-        "isOffshell": False,
-        "sample_weights": "(!((mjjGenmax > 150) * GenLHE))", #fix it later
-        "sample_filters": None
-    },
+    #"WW": {
+    #    "files": (
+    #        list_files_in_folder(mc_path, "WmToLNu_WmTo2J_QCD") +
+    #        list_files_in_folder(mc_path, "WpToLNu_WpTo2J_QCD")
+    #    ),
+    #    "isMC": True,
+    #    "isSignal": False,
+    #    "isOffshell": False,
+    #    "sample_weights": "(!((mjjGenmax > 150) * GenLHE))", #fix it later
+    #    "sample_filters": None
+    #},
     "qqWWqq": {
         "files": (
             list_files_in_folder(mc_path, "WpTo2J_WmToLNu_QCD") +
@@ -229,19 +230,19 @@ dataset = {
         "sample_weights": "(mjjGenmax > 150) * (GenLHE)", #added sample weight
         "sample_filters": None
     },
-    "WWewk": {
-        "files": (
-            list_files_in_folder(mc_path, "WpTo2J_WmToLNu") +
-            list_files_in_folder(mc_path, "WpToLNu_WmTo2J") +
-            list_files_in_folder(mc_path, "WpToLNu_WpTo2J") +
-            list_files_in_folder(mc_path, "WmToLNu_WmTo2J")
-        ),
-        "isMC": True,
-        "isSignal": False,
-        "isOffshell": False,
-        "sample_weights": None, #no sample weight for WWewk
-        "sample_filters": None
-    },
+    #"WWewk": {
+    #    "files": (
+    #        list_files_in_folder(mc_path, "WpTo2J_WmToLNu") +
+    #        list_files_in_folder(mc_path, "WpToLNu_WmTo2J") +
+    #        list_files_in_folder(mc_path, "WpToLNu_WpTo2J") +
+    #        list_files_in_folder(mc_path, "WmToLNu_WmTo2J")
+    #    ),
+    #    "isMC": True,
+    #    "isSignal": False,
+    #    "isOffshell": False,
+    #    "sample_weights": None, #no sample weight for WWewk
+    #    "sample_filters": None
+    #},
     "WJetsToLNu-LO": {
         "files": list_files_in_folder(mc_path, "WJetsToLNu-LO"),
         "isMC": True,
@@ -409,21 +410,22 @@ dataset = {
         "sample_weights": None, #no sample weight for VBF_V
         "sample_filters": None
     },
-    "ggH_sonly_on": {
-        "files": list_files_in_folder(mc_path, "GluGluToWWToQQ_Sig_private"),
-        "isMC": True,
-        "isSignal": True,
-        "isOffshell": False,
-        "sample_weights": None,
-        "sample_filters": "Lhe_mWW < 160"
-    },
+    #"ggH_sonly_on": {
+    #    "files": list_files_in_folder(mc_path, "GluGluToWWToQQ_Sig_private"),
+    #    "isMC": True,
+    #    "isSignal": True,
+    #    "isOffshell": False,
+    #    "sample_weights": None,
+    #    "sample_filters": "Lhe_mWW < 160"
+    #},
     "ggH_sonly_off": {
         "files": list_files_in_folder(mc_path, "GluGluToWWToQQ_Sig_private"),
         "isMC": True,
         "isSignal": True,
         "isOffshell": True,
         "sample_weights": None,
-        "sample_filters": "Lhe_mWW > 160"
+        "sample_filters": "Lhe_mWW > 160",
+        "xsec": 0.4357
     },
     "ggH_sand_off": {
         "files": list_files_in_folder(mc_path, "GluGluToWWToQQ_SBI_private"),
@@ -431,14 +433,15 @@ dataset = {
         "isSignal": True,
         "isOffshell": True,
         "sample_weights": None,
-        "sample_filters": "Lhe_mWW > 160"
+        "sample_filters": "Lhe_mWW > 160",
+        "xsec": 7.1116
     },
-    "ggH_sand_on": {
-        "files": list_files_in_folder(mc_path, "GluGluToWWToQQ_SBI_private"),
-        "isMC": True,
-        "isSignal": True,
-        "isOffshell": False,
-        "sample_weights": None,
-        "sample_filters": "Lhe_mWW < 160"
-    }
+    #"ggH_sand_on": {
+    #    "files": list_files_in_folder(mc_path, "GluGluToWWToQQ_SBI_private"),
+    #    "isMC": True,
+    #    "isSignal": True,
+    #    "isOffshell": False,
+    #    "sample_weights": None,
+    #    "sample_filters": "Lhe_mWW < 160"
+    #}
 }

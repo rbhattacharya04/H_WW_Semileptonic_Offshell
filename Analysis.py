@@ -32,8 +32,8 @@ def makeRDF(dataset_name, wtagger="Nominal"):
     #df = df.Range(1000)
     ROOT.RDF.Experimental.AddProgressBar(df)
     #XS_Weight_cal = (59.7*1000*0.775)/genEventSumw
-    if isSignal: 
-        XS_Weight_cal = (1000*0.4357)/genEventSumw
+    if "xsec" in dataset[dataset_name]: 
+        XS_Weight_cal = (1000*dataset[dataset_name]["xsec"])/genEventSumw
     
     df = df.Define("weight","1")
     
@@ -67,8 +67,10 @@ def makeRDF(dataset_name, wtagger="Nominal"):
                 df = df.Filter("Lhe_mWW < 160")
         #comment out the following two lines as I have defined weight as above
     
-        if isSignal:
+        if "xsec" in dataset[dataset_name]:
             #df = df.Redefine("weight",f"weight*genWeight*{XS_Weight_cal}*METFilter_MC*puWeight*EMTFbug_veto") #XSWeight is genweight*baseW https://github.com/sv3048/LatinoAnalysis/blob/SemilepOFFSHELL/NanoGardener/python/data/formulasToAdd_MCnoSF_Full2018v9.py#L29-L31
+            print("xsec = ",dataset[dataset_name]["xsec"])
+            print("XS_Weight_cal = ", XS_Weight_cal)
             df = df.Redefine("weight",f"weight*genWeight*{XS_Weight_cal}*METFilter_MC*puWeight*EMTFbug_veto") #XSWeight is genweight*baseW https://github.com/sv3048/LatinoAnalysis/blob/SemilepOFFSHELL/NanoGardener/python/data/formulasToAdd_MCnoSF_Full2018v9.py#L29-L31
         else:
             df = df.Redefine("weight","weight*XSWeight*METFilter_MC*puWeight*EMTFbug_veto")
@@ -209,7 +211,7 @@ def makeRDF(dataset_name, wtagger="Nominal"):
         results["Jet_MD_WTagger"] = df.Histo1D(("h_MD_WTagger", "WTagger MD", 10, 0, 1), "AnaFatJet_md_wtag","weight") 
     
     if wtagger == "Nominal":
-        df = df.Filter("AnaFatJet_nom_wtag > 0.94","Wtagger Nominal 0p5 cut")
+        df = df.Filter("AnaFatJet_nom_wtag > 0.98","Wtagger Nominal 0p5 cut")
         if isMC:
             df = df.Define("WTagger_SF","getWTaggerSF(AnaFatJet_pt)")
             df = df.Redefine("weight","weight*WTagger_SF")
@@ -283,7 +285,7 @@ elif args.run == "sig+sbi":
 elif args.run == "sig":
     print("Wrong3")
     histograms["ggH_sonly_off"] = makeRDF("ggH_sonly_off",args.wtag)
-    histograms["ggH_bonly_off"] = makeRDF("ggH_bonly_off",args.wtag)
+    #histograms["ggH_bonly_off"] = makeRDF("ggH_bonly_off",args.wtag)
 else:
     print("Right")
     for keys in dataset:
@@ -298,7 +300,7 @@ else:
     # Use pickle.dump() to save the dictionary
 #    pickle.dump(histograms, f)
 
-output_file = ROOT.TFile("output_bonly_off_8_Nov.root", "RECREATE")
+output_file = ROOT.TFile("output_19_Nov_correct_WTagger_full_bkg_v2.root", "RECREATE")
 for key1 in histograms:
     new_directory = output_file.mkdir(key1)
     new_directory.cd()

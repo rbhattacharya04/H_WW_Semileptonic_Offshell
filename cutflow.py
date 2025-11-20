@@ -22,12 +22,12 @@ cutflow_sbi_weighted = {}
 
 lumi = 59.7
 #root_file = ROOT.TFile.Open("output.root","READ")
-root_file = ROOT.TFile.Open("output_bonly_off_8_Nov.root","READ")
+root_file = ROOT.TFile.Open("output_19_Nov_correct_WTagger_full_bkg_v2.root","READ")
 
 #pd.set_option('display.float_format', '{:.2f}'.format)
-#bkg_samples = ["TTToSemiLeptonic","TTTo2L2Nu","TTWJetsToLNu","ST_s-channel","ST_t-channel_antitop","ST_t-channel_top","ST_tW_antitop","ST_tW_top"]
-bkg_samples = ["ggH_bonly_off"]
-#bkg_samples = ["WJetsToLNu-LO", "WJetsToLNu_HT70To100", "WJetsToLNu_HT100To200", "WJetsToLNu_HT200To400", "WJetsToLNu_HT400To600" , "WJetsToLNu_HT600To800" , "WJetsToLNu_HT800To1200", "WJetsToLNu_HT1200To2500", "WJetsToLNu_HT2500ToInf"]
+bkg_samples = ["TTToSemiLeptonic"]#,"TTTo2L2Nu","TTWJetsToLNu","ST_s-channel","ST_t-channel_antitop","ST_t-channel_top","ST_tW_antitop","ST_tW_top","DYJetsToLL_M-50","DY_else","ggH_bonly_off","qqWWqq","WJetsToLNu-LO","WGToLNuG","ZGToLLG","ZZ","WZ","VVV"]
+#bkg_samples = []
+#bkg_samples = ["ggH_bonly_off"]#, "WJetsToLNu_HT70To100", "WJetsToLNu_HT100To200", "WJetsToLNu_HT200To400", "WJetsToLNu_HT400To600" , "WJetsToLNu_HT600To800" , "WJetsToLNu_HT800To1200", "WJetsToLNu_HT1200To2500", "WJetsToLNu_HT2500ToInf"]
 cutflow_bkg_ind = {}
 default_value = {}
 cutflow_bkg_ind_weighted = dict.fromkeys(bkg_samples,default_value)
