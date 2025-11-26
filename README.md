@@ -1,3 +1,5 @@
-Main File - Analysis.py. Contains the RDF, and the "Define" and "Filter" are defined there.
-Datasets are defined in Dataset.py and imported in Analysis.py.
-The functions used in the RDF are defined in SemiLeptonic.h. Please use small C++ functions to define new variables or implement a complicated cut.
+- Main File - Analysis.py. Contains the RDF, and the "Define" and "Filter" are defined there.
+- Datasets are defined in Dataset.py and imported in Analysis.py.
+- The functions used in the RDF are defined in SemiLeptonic.h. Please use small C++ functions to define new variables or implement a complicated cut.
+- Script to produce cutflow table is cutflow.py. This uses Pandas dataframe, which is not installed in lxplus by default. So, run "sh start_singularity.sh" to run the singularity shell, which have Pnadas dataframe installed.
+- Script to produce data vs MC stacked plot is plotting_data_MC_stacked.py. This uses uproot and CMSStyle. To run this, run "sh start_singularity.sh" and inside the singulairty shell source CMSStyle. You have to first checkout CMSStyle in a different area.

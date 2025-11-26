@@ -219,16 +219,24 @@ dataset = {
     #    "sample_weights": "(!((mjjGenmax > 150) * GenLHE))", #fix it later
     #    "sample_filters": None
     #},
-    "qqWWqq": {
-        "files": (
-            list_files_in_folder(mc_path, "WpTo2J_WmToLNu_QCD") +
-            list_files_in_folder(mc_path, "WpToLNu_WmTo2J_QCD")
-        ),
+    #"qqWWqq": {
+    #    "files": (
+    #        list_files_in_folder(mc_path, "WpTo2J_WmToLNu_QCD") +
+    #        list_files_in_folder(mc_path, "WpToLNu_WmTo2J_QCD")
+    #    ),
+    #    "isMC": True,
+    #    "isSignal": False,
+    #    "isOffshell": False,
+    #    "sample_weights": "(mjjGenmax > 150) * (GenLHE)", #added sample weight
+    #    "sample_filters": None
+    #},
+    "WW": {
+        "files" : list_files_in_folder(mc_path,"WWToLNuQQ"),
         "isMC": True,
         "isSignal": False,
         "isOffshell": False,
-        "sample_weights": "(mjjGenmax > 150) * (GenLHE)", #added sample weight
-        "sample_filters": None
+        "sample_weights": None,
+        "sample_filters": None,
     },
     #"WWewk": {
     #    "files": (

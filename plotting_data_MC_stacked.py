@@ -20,18 +20,46 @@ petroff10 = ["#3f90da", "#ffa90e", "#bd1f01", "#94a4a2", "#832db6", "#a96b59", "
 #plots = ["h_Jet_pt","h_Nominal_WTagger","h_Lepton_pt_selection","h_Lepton_eta_selection","h_Lepton_phi_selection","h_Jet_pt_selection","h_Jet_eta_selection","h_Jet_phi_selection","h_Jet_mass_selection","h_Nominal_WTagger_selection","h_Higgs_pt","h_Higgs_eta","h_Higgs_phi","h_Higgs_mass", "h_MET_pt","h_MET_phi"]
 
 plots = {
-    #"h_Jet_pt_selection" : {
-    #    "x_axis" : r"$p_{T}^{Jet}$", 
-    #    "y_axis": "Events/20 GeV",
-    #} ,
-    #"h_Jet_eta_selection" : {
-    #    "x_axis" : r"$\eta^{Jet}$",
-    #    "y_axis" : "Events/0.2",
-    #},
-    #"h_Jet_phi_selection" : {
-    #    "x_axis" : r"$\phi^{Jet}$",
-    #    "y_axis" : "Events/0.4",
-    #},
+    "h_Lepton_pt" : {
+        "x_axis" : r"$p_{T}^{Lep}$",
+        "y_axis": "Events/20 GeV",
+    },
+    "h_nFatJet" : {
+        "x_axis" : "nFatJet",
+        "y_axis": "Events/1",
+    },
+    "h_Lepton_pt_selection" : {
+        "x_axis" : r"$p_{T}^{Lep}$",
+        "y_axis": "Events/20 GeV",
+    },
+    "h_Lepton_eta_selection" : {
+        "x_axis" : r"$\eta^{Lep}$",
+        "y_axis" : "Events/0.2",
+    },
+    "h_Lepton_phi_selection" : {
+        "x_axis" : r"$\phi^{Lep}$",
+        "y_axis" : "Events/0.4",
+    },
+    "h_Jet_pt" : {
+        "x_axis" : r"$p_{T}^{Jet}$", 
+        "y_axis": "Events/20 GeV",
+    } ,
+    "h_Jet_pt_1" : {
+        "x_axis" : r"$p_{T}^{Jet}$", 
+        "y_axis": "Events/20 GeV",
+    } ,
+    "h_Jet_pt_selection" : {
+        "x_axis" : r"$p_{T}^{Jet}$", 
+        "y_axis": "Events/20 GeV",
+    } ,
+    "h_Jet_eta_selection" : {
+        "x_axis" : r"$\eta^{Jet}$",
+        "y_axis" : "Events/0.2",
+    },
+    "h_Jet_phi_selection" : {
+        "x_axis" : r"$\phi^{Jet}$",
+        "y_axis" : "Events/0.4",
+    },
     "h_Jet_mass_selection" : {
         "x_axis" : r"$m^{Jet}$",
         "y_axis" : "Events/10 GeV",
@@ -40,78 +68,78 @@ plots = {
         "x_axis" : "WTagger_Score",
         "y_axis" : "Events/0.1",
     },
-    "h_Nominal_TopTagger_selection": {
-        "x_axis" : "TopTagger_Score",
-        "y_axis" : "Events/0.1",
-    },
-    "h_Jet_tau1_selection": {
-        "x_axis" : r"$\tau_{1}$",
-        "y_axis" : "Events/0.1",
-    },
-    "h_Jet_tau2_selection": {
-        "x_axis" : r"$\tau_{2}$",
-        "y_axis" : "Events/0.1",
-    },
-    "h_Jet_tau3_selection": {
-        "x_axis" : r"$\tau_{3}$",
-        "y_axis" : "Events/0.1",
-    },
-    "h_Jet_tau4_selection": {
-        "x_axis" : r"$\tau_{4}$",
-        "y_axis" : "Events/0.1",
-    },
-    "h_Jet_tau2_tau1_selection": {
-        "x_axis" : r"$\frac{\tau_{2}}{\tau_{1}}$",
-        "y_axis" : "Events/0.1",
-    },
-    "h_Jet_tau3_tau2_selection": {
-        "x_axis" : r"$\frac{\tau_{3}}{\tau_{2}}$",
-        "y_axis" : "Events/0.1",
-    },
-    "h_Jet_subJetIdx1_selection": {
-        "x_axis" : "Jet_subJetIdx1",
-        "y_axis" : "Events/1",
-    },
-    "h_Jet_n2b1_selection": {
-        "x_axis" : "n2b1",
-        "y_axis" : "Events/0.1",
-    },
-    "h_Jet_n3b1_selection": {
-        "x_axis" : "n3b1",
-        "y_axis" : "Events/0.1",
-    },
-    "h_Jet_rawFactor_selection": {
-        "x_axis" : "Jet_rawFactor",
-        "y_axis" : "Events/10",
-    },
-    "h_Jet_electronIdx3SJ": {
-        "x_axis" : "Jet_electronIdx3SJ",
-        "y_axis" : "Events/1",
-    },
-    "h_Jet_muonIdx3SJ": {
-        "x_axis" : "Jet_muonIdx3SJ",
-        "y_axis" : "Events/1",
-    },
-    "h_Jet_nConstituents": {
-        "x_axis" : "Jet_nConstituents",
-        "y_axis" : "Events/1",
-    },
-    "h_Jet_genJetAK8Idx": {
-        "x_axis" : "Jet_genJetAK8Idx",
-        "y_axis" : "Events/1",
-    },
-    "h_Jet_hadronFlavour": {
-        "x_axis" : "Jet_hadronFlavour",
-        "y_axis" : "Events/1",
-    },
-    "h_Jet_nBHadrons": {
-        "x_axis" : "Jet_nBHadrons",
-        "y_axis" : "Events/1",
-    },
-    "h_Jet_nChadrons": {
-        "x_axis" : "Jet_nCHadrons",
-        "y_axis" : "Events/1",
-    },
+    #"h_Nominal_TopTagger_selection": {
+    #    "x_axis" : "TopTagger_Score",
+    #    "y_axis" : "Events/0.1",
+    #},
+    #"h_Jet_tau1_selection": {
+    #    "x_axis" : r"$\tau_{1}$",
+    #    "y_axis" : "Events/0.1",
+    #},
+    #"h_Jet_tau2_selection": {
+    #    "x_axis" : r"$\tau_{2}$",
+    #    "y_axis" : "Events/0.1",
+    #},
+    #"h_Jet_tau3_selection": {
+    #    "x_axis" : r"$\tau_{3}$",
+    #    "y_axis" : "Events/0.1",
+    #},
+    #"h_Jet_tau4_selection": {
+    #    "x_axis" : r"$\tau_{4}$",
+    #    "y_axis" : "Events/0.1",
+    #},
+    #"h_Jet_tau2_tau1_selection": {
+    #    "x_axis" : r"$\frac{\tau_{2}}{\tau_{1}}$",
+    #    "y_axis" : "Events/0.1",
+    #},
+    #"h_Jet_tau3_tau2_selection": {
+    #    "x_axis" : r"$\frac{\tau_{3}}{\tau_{2}}$",
+    #    "y_axis" : "Events/0.1",
+    #},
+    #"h_Jet_subJetIdx1_selection": {
+    #    "x_axis" : "Jet_subJetIdx1",
+    #    "y_axis" : "Events/1",
+    #},
+    #"h_Jet_n2b1_selection": {
+    #    "x_axis" : "n2b1",
+    #    "y_axis" : "Events/0.1",
+    #},
+    #"h_Jet_n3b1_selection": {
+    #    "x_axis" : "n3b1",
+    #    "y_axis" : "Events/0.1",
+    #},
+    #"h_Jet_rawFactor_selection": {
+    #    "x_axis" : "Jet_rawFactor",
+    #    "y_axis" : "Events/10",
+    #},
+    #"h_Jet_electronIdx3SJ": {
+    #    "x_axis" : "Jet_electronIdx3SJ",
+    #    "y_axis" : "Events/1",
+    #},
+    #"h_Jet_muonIdx3SJ": {
+    #    "x_axis" : "Jet_muonIdx3SJ",
+    #    "y_axis" : "Events/1",
+    #},
+    #"h_Jet_nConstituents": {
+    #    "x_axis" : "Jet_nConstituents",
+    #    "y_axis" : "Events/1",
+    #},
+    #"h_Jet_genJetAK8Idx": {
+    #    "x_axis" : "Jet_genJetAK8Idx",
+    #    "y_axis" : "Events/1",
+    #},
+    #"h_Jet_hadronFlavour": {
+    #    "x_axis" : "Jet_hadronFlavour",
+    #    "y_axis" : "Events/1",
+    #},
+    #"h_Jet_nBHadrons": {
+    #    "x_axis" : "Jet_nBHadrons",
+    #    "y_axis" : "Events/1",
+    #},
+    #"h_Jet_nChadrons": {
+    #    "x_axis" : "Jet_nCHadrons",
+    #    "y_axis" : "Events/1",
+    #},
     
 }
 
@@ -124,12 +152,13 @@ plots = {
 #SBI = []i
 
 #bkg_samples = {"Top" : ["TTToSemiLeptonic", "TTTo2L2Nu","ST_tW_top","ST_tW_antitop","ST_t-channel_top","ST_t-channel_antitop", "TTWJetsToLNu", "ST_s-channel"]}
-bkg_samples = {"Top" : ["TTToSemiLeptonic"]}
-bkg_samples["Top"].reverse()
-uproot_file = uproot.open("output_15Nov_v3.root")
+#bkg_samples = {"Top" : ["TTToSemiLeptonic"]}
+#bkg_samples["Top"].reverse()
+bkg_samples = {"ggWW" : ["ggH_bonly_off"]}
+uproot_file = uproot.open("output_25_Nov_2.root")
  
 
-output_path = "/eos/user/r/rbhattac/www/Marc_TNP_Plots/H_WW/Debug_Plots/test_plot_18_Nov_2025_High_WTagger_TTToSemiLeptonic"
+output_path = "/eos/user/r/rbhattac/www/Marc_TNP_Plots/H_WW/Debug_Plots/test_plot_25_Nov_2025_v2"
 os.makedirs(output_path,exist_ok=True)
 shutil.copy("index.php", output_path)
 
@@ -176,13 +205,22 @@ for plot in plots:
     #integral_signal = hist_signal.Integral(0,hist_signal.GetNbinsX()+1)
     integral_signal = h_signal.view(flow=True).sum().value
     hep.histplot(h_signal, ax=ax, histtype='step', linewidth=3, label=f"Signal")#, color="#717581")
-    #hist_sbi = root_file.Get(f"ggH_sand_off/{plot}")
+    h_sbi = uproot_file[f"ggH_sand_off/{plot}"].to_boost()
+    h_sbi = h_sbi * 59.7
     #integral_sbi = hist_sbi.Integral()
     #h_sbi = narf.root_to_hist(hist_sbi)
-    #hep.histplot(h_sbi, ax=ax, histtype='step', linewidth=3,color='blue', label=f"SBI: {integral_sbi:.2f}")
+    hep.histplot(h_sbi, ax=ax, histtype='step', linewidth=3, label=f"SBI")
+    h_i = h_sbi + (h_signal * -1.0) + (histo_list_plot[0] * -1.0)
+    hep.histplot(h_i, ax = ax, histtype='step', linewidth=3, label=f"I")
+    h_i_2 = h_i * -1.0
+    hep.histplot(h_i_2, ax = ax, histtype='step',linewidth=3,label=f"-I")
+
+
     #ax.set_yscale("log")
     ax.legend()
     plt.savefig(f'{output_path}/{plot}.png')  
+    ax.set_yscale("log")
+    plt.savefig(f'{output_path}/{plot}_log.png')  
     
         
         

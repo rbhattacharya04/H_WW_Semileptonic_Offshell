@@ -52,9 +52,9 @@ def makeRDF(dataset_name, wtagger="Nominal"):
             df = df.Define("VgWeight", "gstarLowWeight + gstarHighWeight")
             if dataset_name not in ["ZZ", "WZ"]:
                 df = df.Define("GenLHE", "GenLHE(LHEPart_pdgId)")
-            if dataset_name in ["ggH_bonly_on", "ggH_bonly_off"]:
+            if dataset_name in ["ggH_bonly_on", "ggH_bonly_off", "ggH_sand_off", "ggH_sand_on"]:
                 df = df.Define("Lhe_mWW", "computeMWW(nLHEPart, LHEPart_pt, LHEPart_eta, LHEPart_phi, LHEPart_mass, LHEPart_pdgId, LHEPart_status)")
-                if dataset_name in ["ggH_bonly_off"]:
+                if dataset_name in ["ggH_bonly_off","ggH_sand_off"]:
                     df = df.Filter("Lhe_mWW > 160")
                 else:
                     df = df.Filter("Lhe_mWW < 160")
@@ -105,6 +105,7 @@ def makeRDF(dataset_name, wtagger="Nominal"):
     df = df.Define("Leading_Lepton_pdgId","Lepton_pdgId[0]")
     df = df.Define("Leading_Lepton_electronIdx","Lepton_electronIdx[0]")
     df = df.Define("Leading_Lepton_muonIdx","Lepton_muonIdx[0]")
+    results["Lepton_pt"] = df.Histo1D(("h_Lepton_pt","Lepton pt",50,0,1000),"Leading_Lepton_pt","weight")
     
     if isMC:
         df = df.Define("Leading_Lepton_promptgenmatched","Lepton_promptgenmatched[0]")
@@ -141,6 +142,13 @@ def makeRDF(dataset_name, wtagger="Nominal"):
 
 
     results["nCleanedFatJet"] = df.Histo1D(("nCleanedFatJet","nCleanedFatJet",6,-0.5,5.5),"nCleanFatJet")
+    
+    results["nGenJetAK8"] = df.Histo1D(("h_nGenJetAK8","nGenJetAK8",6,-0.5,5.5),"nGenJetAK8","weight")
+    results["nFatJet"] = df.Histo1D(("h_nFatJet","nGenJetAK8",6,-0.5,5.5),"nFatJet","weight")
+
+    #df = df.Filter("nGenJetAK8 >=1","GenJet cut")
+    #df = df.Define("Lead_GenJetAK8_mass","GenJetAK8_mass.at(0)")
+    #results["h_Lead_GenJetAK8_mass"] = df.Histo1D(("h__GenJetAK8_mass","Lead_GenJetAK8_mass",20, 0,100),"Lead_GenJetAK8_mass", "weight")
 
     # Jet Selection
     df = df.Filter("nFatJet>=1","At Least 1 Fat Jet")
@@ -150,6 +158,10 @@ def makeRDF(dataset_name, wtagger="Nominal"):
     
     results["Cutflow_nFatJet"] = df.Histo1D(("h_cutflow_nFatJet","Cutflow nFatjet",1,-0.5,0.5),"cutflow_stage","weight")
     
+    df = df.Define("Lead_jet_pt","FatJet_pt[0]")
+    results["Jet_pt_1"] = df.Histo1D(("h_Jet_pt_1","Jet pt",400,100,500),"Lead_jet_pt","weight") 
+
+ 
     df = df.Define("GoodFatJet_idx","isGoodFatjet_indx(FatJet_eta,FatJet_phi,FatJet_jetId,Lepton_eta,Lepton_phi)")
     df = df.Filter("!(GoodFatJet_idx == -1)", "Good Fat Jet cut")
     results["Cutflow_JetCleaning"] = df.Histo1D(("h_cutflow_JetCleaning","Cutflow JetCleaning",1,-0.5,0.5),"cutflow_stage","weight")
@@ -160,6 +172,7 @@ def makeRDF(dataset_name, wtagger="Nominal"):
     df = df.Define("AnaFatJet_msoftdrop", "FatJet_msoftdrop[GoodFatJet_idx]")
     df = df.Define("AnaFatJet_jetId","FatJet_jetId[GoodFatJet_idx]")
     
+    results["Jet_pt"] = df.Histo1D(("h_Jet_pt","Jet pt",400,100,500),"AnaFatJet_pt","weight") 
 
     
    
@@ -185,7 +198,6 @@ def makeRDF(dataset_name, wtagger="Nominal"):
     df = df.Filter("(AnaFatJet_msoftdrop > 65 && AnaFatJet_msoftdrop < 105)","Mass cut")
     results["Cutflow_Jet_mass"] = df.Histo1D(("h_cutflow_Mass_cut","Cutflow Jet Mass",1,-0.5,0.5),"cutflow_stage","weight")
     
-    results["Jet_pt"] = df.Histo1D(("h_Jet_pt","Jet pt",400,100,500),"AnaFatJet_pt","weight") 
     
     df = df.Define("CleanJet_btag", "Take(Jet_btagDeepFlavB, CleanJet_jetIdx)")
     if isMC:
@@ -285,7 +297,9 @@ elif args.run == "sig+sbi":
 elif args.run == "sig":
     print("Wrong3")
     histograms["ggH_sonly_off"] = makeRDF("ggH_sonly_off",args.wtag)
-    #histograms["ggH_bonly_off"] = makeRDF("ggH_bonly_off",args.wtag)
+    histograms["ggH_bonly_off"] = makeRDF("ggH_bonly_off",args.wtag)
+    histograms["ggH_sand_off"] = makeRDF("ggH_sand_off",args.wtag)
+    #histograms["WW"] = makeRDF("WW",args.wtag)
 else:
     print("Right")
     for keys in dataset:
@@ -300,7 +314,7 @@ else:
     # Use pickle.dump() to save the dictionary
 #    pickle.dump(histograms, f)
 
-output_file = ROOT.TFile("output_19_Nov_correct_WTagger_full_bkg_v2.root", "RECREATE")
+output_file = ROOT.TFile("output_25_Nov_3.root", "RECREATE")
 for key1 in histograms:
     new_directory = output_file.mkdir(key1)
     new_directory.cd()
