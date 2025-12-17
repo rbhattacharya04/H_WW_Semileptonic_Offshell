@@ -85,6 +85,10 @@ def makeRDF(dataset_name, wtagger="Nominal"):
     #        df = df.Filter(dataset[dataset_name]["sample_filters"])
 
  
+    if dataset_name in ["ggH_sonly_off","ggH_bonly_off","ggH_sand_off"]:
+        results["Lhe_mWW"] = df.Histo1D(("h_Lhe_mWW","Lhe_mWW",50,0,1000),"Lhe_mWW","weight")
+        df = df.Define("Gen_mWW","computeMWWGen(nGenPart, GenPart_pt, GenPart_eta, GenPart_phi, GenPart_mass, GenPart_pdgId, GenPart_status, GenPart_genPartIdxMother)")
+        results["Gen_mWW"] = df.Histo1D(("h_Gen_mWW","Gen_mWW",50,0, 1000),"Gen_mWW", "weight") 
     df = df.Define("cutflow_stage","0")
     results["Cutflow_Start"] = df.Histo1D(("h_cutflow_Start","Cutflow Start",1,-0.5,0.5),"cutflow_stage","weight")
 
@@ -93,6 +97,7 @@ def makeRDF(dataset_name, wtagger="Nominal"):
     results["Cutflow_Trigger"] = df.Histo1D(("h_cutflow_Trigger","Cutflow Trigger",1,-0.5,0.5),"cutflow_stage","weight")
 
      
+    results["All_Lepton_pt"] = df.Histo1D(("h_All_Lepton_pt","All Lepton pt",50,0,1000),"Lepton_pt","weight")
     ele_tight = "(abs(Lepton_pdgId) == 11 && Lepton_isTightElectron_mvaFall17V2Iso_WP90)"
     mu_tight = "(abs(Lepton_pdgId) == 13 && Lepton_isTightMuon_cut_Tight_HWWW)"
     lepton_tight = ele_tight + " || " + mu_tight
@@ -149,6 +154,7 @@ def makeRDF(dataset_name, wtagger="Nominal"):
     #df = df.Filter("nGenJetAK8 >=1","GenJet cut")
     #df = df.Define("Lead_GenJetAK8_mass","GenJetAK8_mass.at(0)")
     #results["h_Lead_GenJetAK8_mass"] = df.Histo1D(("h__GenJetAK8_mass","Lead_GenJetAK8_mass",20, 0,100),"Lead_GenJetAK8_mass", "weight")
+    results["All_Jet_pt_1"] = df.Histo1D(("h_All_Jet_pt_1","All Jet pt",50,0,1000),"FatJet_pt","weight") 
 
     # Jet Selection
     df = df.Filter("nFatJet>=1","At Least 1 Fat Jet")
@@ -159,7 +165,7 @@ def makeRDF(dataset_name, wtagger="Nominal"):
     results["Cutflow_nFatJet"] = df.Histo1D(("h_cutflow_nFatJet","Cutflow nFatjet",1,-0.5,0.5),"cutflow_stage","weight")
     
     df = df.Define("Lead_jet_pt","FatJet_pt[0]")
-    results["Jet_pt_1"] = df.Histo1D(("h_Jet_pt_1","Jet pt",400,100,500),"Lead_jet_pt","weight") 
+    results["Jet_pt_1"] = df.Histo1D(("h_Jet_pt_1","Jet pt",50,0,1000),"Lead_jet_pt","weight") 
 
  
     df = df.Define("GoodFatJet_idx","isGoodFatjet_indx(FatJet_eta,FatJet_phi,FatJet_jetId,Lepton_eta,Lepton_phi)")
@@ -172,7 +178,7 @@ def makeRDF(dataset_name, wtagger="Nominal"):
     df = df.Define("AnaFatJet_msoftdrop", "FatJet_msoftdrop[GoodFatJet_idx]")
     df = df.Define("AnaFatJet_jetId","FatJet_jetId[GoodFatJet_idx]")
     
-    results["Jet_pt"] = df.Histo1D(("h_Jet_pt","Jet pt",400,100,500),"AnaFatJet_pt","weight") 
+    results["Jet_pt"] = df.Histo1D(("h_Jet_pt","Jet pt",50,0,1000),"AnaFatJet_pt","weight") 
 
     
    
@@ -296,10 +302,12 @@ elif args.run == "sig+sbi":
 #    histograms["ggH_sand_off"] = makeRDF("ggH_sand_off",args.wtag)
 elif args.run == "sig":
     print("Wrong3")
-    histograms["ggH_sonly_off"] = makeRDF("ggH_sonly_off",args.wtag)
-    histograms["ggH_bonly_off"] = makeRDF("ggH_bonly_off",args.wtag)
-    histograms["ggH_sand_off"] = makeRDF("ggH_sand_off",args.wtag)
+    #histograms["ggH_sonly_off"] = makeRDF("ggH_sonly_off",args.wtag)
+    #histograms["ggH_bonly_off"] = makeRDF("ggH_bonly_off",args.wtag)
+    #histograms["ggH_sand_off"] = makeRDF("ggH_sand_off",args.wtag)
     #histograms["WW"] = makeRDF("WW",args.wtag)
+    histograms["DYJetsToLL_M-50"] = makeRDF("DYJetsToLL_M-50",args.wtag)
+    histograms["DY_else"] = makeRDF("DY_else",args.wtag)
 else:
     print("Right")
     for keys in dataset:
@@ -314,7 +322,7 @@ else:
     # Use pickle.dump() to save the dictionary
 #    pickle.dump(histograms, f)
 
-output_file = ROOT.TFile("output_25_Nov_3.root", "RECREATE")
+output_file = ROOT.TFile("output_8_Dec.root", "RECREATE")
 for key1 in histograms:
     new_directory = output_file.mkdir(key1)
     new_directory.cd()
