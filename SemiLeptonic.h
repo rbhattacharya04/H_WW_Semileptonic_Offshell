@@ -65,6 +65,28 @@ inline double computeMWW(const UInt_t& nLHEPart,
   return WW.M();
 }
 
+inline double computeMWWGen(const UInt_t& nGenPart, 
+                         const RVec<Double_t>& GenPart_pt,
+                         const RVec<Double_t>& GenPart_eta, 
+                         const RVec<Double_t>& GenPart_phi,
+                         const RVec<Double_t>& GenPart_mass,
+                         const RVec<Int_t>& GenPart_pdgId,
+                         const RVec<Int_t>& GenPart_status,
+			 const RVec<Int_t>& GenPart_genPartIdxMother) {
+  
+  ROOT::Math::PtEtaPhiMVector WW;
+  
+  for (UInt_t iPart = 0; iPart < nGenPart; ++iPart) {
+    if (std::abs(GenPart_pdgId[iPart]) != 24) continue;
+    //if (std::abs(GenPart_pdgId[iPart]) != 24) continue;
+    //int mother_pdgId = GenPart_pdgId[GenPart_genPartIdxMother[iPart]];
+    //if (std::abs(mother_pdgId) != 25) continue;
+    WW += ROOT::Math::PtEtaPhiMVector(GenPart_pt[iPart], GenPart_eta[iPart], 
+                                      GenPart_phi[iPart], GenPart_mass[iPart]);
+  }
+  
+  return WW.M();
+}
 // Smart mWW cut function - only applies cut for specific sample types
 /*bool shouldApplyMWWCut(const std::string& sampleType) {
   return (sampleType.find("off") != std::string::npos && 
